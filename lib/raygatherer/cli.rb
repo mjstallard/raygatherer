@@ -30,8 +30,25 @@ module Raygatherer
         return 0
       end
 
-      parse_options
-      0
+      # Check if first argument is a flag
+      if @argv.first =~ /^-/
+        parse_options
+        return 0
+      end
+
+      # Route to commands
+      command = @argv.shift
+      subcommand = @argv.shift
+
+      if command == "alert" && subcommand == "status"
+        require_relative "commands/alert/status"
+        return Commands::Alert::Status.run(@argv, stdout: @stdout, stderr: @stderr)
+      end
+
+      # Unknown command
+      @stderr.puts "Unknown command: #{[command, subcommand].compact.join(' ')}"
+      show_help(@stderr)
+      1
     rescue OptionParser::InvalidOption => e
       @stderr.puts e.message
       show_help(@stderr)
@@ -70,7 +87,10 @@ module Raygatherer
       output.puts "    -v, --version                    Show version"
       output.puts "    -h, --help                       Show this help message"
       output.puts ""
-      output.puts "Commands will be added in future iterations."
+      output.puts "Commands:"
+      output.puts "    alert status                     Check for active IMSI catcher alerts"
+      output.puts ""
+      output.puts "Run 'raygatherer COMMAND --help' for more information on a command."
     end
   end
 end

@@ -63,5 +63,63 @@ RSpec.describe Raygatherer::CLI do
         expect(exit_code).to eq(1)
       end
     end
+
+    describe "command routing" do
+      it "routes 'alert status' to Commands::Alert::Status" do
+        allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
+
+        exit_code = described_class.run(["alert", "status", "--host", "http://test"], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
+          ["--host", "http://test"],
+          stdout: stdout,
+          stderr: stderr
+        )
+        expect(exit_code).to eq(0)
+      end
+
+      it "passes remaining argv to command" do
+        allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
+
+        described_class.run(["alert", "status", "--host", "http://test", "--json"], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
+          ["--host", "http://test", "--json"],
+          stdout: stdout,
+          stderr: stderr
+        )
+      end
+
+      it "returns command exit code" do
+        allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(42)
+
+        exit_code = described_class.run(["alert", "status", "--host", "http://test"], stdout: stdout, stderr: stderr)
+
+        expect(exit_code).to eq(42)
+      end
+
+      it "shows error for unknown command" do
+        exit_code = described_class.run(["unknown"], stdout: stdout, stderr: stderr)
+
+        expect(stderr.string).to include("Unknown command")
+        expect(stderr.string).to include("unknown")
+        expect(exit_code).to eq(1)
+      end
+
+      it "shows error for unknown subcommand" do
+        exit_code = described_class.run(["alert", "unknown"], stdout: stdout, stderr: stderr)
+
+        expect(stderr.string).to include("Unknown command")
+        expect(stderr.string).to include("alert unknown")
+        expect(exit_code).to eq(1)
+      end
+
+      it "shows help after unknown command error" do
+        exit_code = described_class.run(["unknown"], stdout: stdout, stderr: stderr)
+
+        expect(stderr.string).to include("Usage:")
+        expect(exit_code).to eq(1)
+      end
+    end
   end
 end
