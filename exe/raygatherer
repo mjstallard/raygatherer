@@ -1,3 +1,5 @@
 #!/usr/bin/env ruby
 
 require "raygatherer"
+
+exit Raygatherer::CLI.run(ARGV)
