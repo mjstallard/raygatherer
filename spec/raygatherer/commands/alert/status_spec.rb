@@ -163,9 +163,9 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
       it "outputs no alerts message when only Informational events found" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: {},
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
           rows: [
-            { "events" => [nil, { "event_type" => "Informational", "message" => "Info" }] }
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Informational", "message" => "Info" }] }
           ]
         })
 
@@ -177,9 +177,9 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
       it "extracts and displays Low severity alert" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: {},
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
           rows: [
-            { "events" => [nil, { "event_type" => "Low", "message" => "Low severity issue" }] }
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Low", "message" => "Low severity issue" }] }
           ]
         })
 
@@ -192,9 +192,9 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
       it "extracts and displays Medium severity alert" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: {},
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
           rows: [
-            { "events" => [nil, { "event_type" => "Medium", "message" => "Connection redirect" }] }
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Medium", "message" => "Connection redirect" }] }
           ]
         })
 
@@ -207,9 +207,9 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
       it "extracts and displays High severity alert" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: {},
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
           rows: [
-            { "events" => [nil, { "event_type" => "High", "message" => "Critical threat" }] }
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Critical threat" }] }
           ]
         })
 
@@ -222,11 +222,11 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
       it "extracts highest severity alert when multiple alerts exist" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: {},
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
           rows: [
-            { "events" => [nil, { "event_type" => "Low", "message" => "Low issue" }] },
-            { "events" => [nil, { "event_type" => "High", "message" => "High issue" }] },
-            { "events" => [nil, { "event_type" => "Medium", "message" => "Medium issue" }] }
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Low", "message" => "Low issue" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, { "event_type" => "High", "message" => "High issue" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Medium", "message" => "Medium issue" }] }
           ]
         })
 
@@ -239,9 +239,10 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
       it "handles multiple events in a single row" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: {},
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }, { "name" => "Analyzer B" }] },
           rows: [
             {
+              "packet_timestamp" => "2024-02-07T14:25:32Z",
               "events" => [
                 nil,
                 { "event_type" => "Low", "message" => "Low issue" },
@@ -323,8 +324,8 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
     it "uses JSON formatter when --json is present" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: {},
-        rows: [{ "events" => [nil, { "event_type" => "High", "message" => "Test alert" }] }]
+        metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Test alert" }] }]
       })
 
       described_class.run(
@@ -383,8 +384,8 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
     it "JSON output goes to stdout (no colors, no emojis)" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: {},
-        rows: [{ "events" => [nil, { "event_type" => "High", "message" => "Test" }] }]
+        metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Test" }] }]
       })
 
       described_class.run(
@@ -420,8 +421,8 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
     it "returns 0 when no alerts" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: {},
-        rows: [{ "events" => [nil] }]
+        metadata: { "analyzers" => [nil] },
+        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil] }]
       })
 
       exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
@@ -431,8 +432,8 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
     it "returns 10 for Low severity alert" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: {},
-        rows: [{ "events" => [nil, { "event_type" => "Low", "message" => "Low issue" }] }]
+        metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Low", "message" => "Low issue" }] }]
       })
 
       exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
@@ -442,8 +443,8 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
     it "returns 11 for Medium severity alert" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: {},
-        rows: [{ "events" => [nil, { "event_type" => "Medium", "message" => "Medium issue" }] }]
+        metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Medium", "message" => "Medium issue" }] }]
       })
 
       exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
@@ -453,8 +454,8 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
     it "returns 12 for High severity alert" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: {},
-        rows: [{ "events" => [nil, { "event_type" => "High", "message" => "High issue" }] }]
+        metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "High issue" }] }]
       })
 
       exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
