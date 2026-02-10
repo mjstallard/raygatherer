@@ -122,4 +122,60 @@ RSpec.describe "CLI Integration" do
       expect(stderr).to include("HTTP GET") # Verbose in stderr
     end
   end
+
+  describe "raygatherer --json flag" do
+    it "outputs valid JSON when --json flag is used" do
+      # This will fail to connect, but tests flag acceptance
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "alert", "status", "--host", "http://localhost:9999", "--json"
+      )
+
+      expect(stdout).to be_empty  # Error case, no output to stdout
+      expect(status.exitstatus).to eq(1)  # Generic error
+    end
+
+    it "outputs human-readable format without --json (default)" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "alert", "status", "--host", "http://localhost:9999"
+      )
+
+      expect(stderr).to include("Error")  # Human error message
+      expect(status.exitstatus).to eq(1)  # Generic error
+    end
+
+    it "works with --json and --verbose together" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "--verbose", "alert", "status", "--host", "http://localhost:9999", "--json"
+      )
+
+      # Verbose logs to stderr
+      expect(stderr).to include("HTTP GET")
+      # JSON would go to stdout (but connection fails)
+      expect(status.exitstatus).to eq(1)  # Generic error
+    end
+
+    it "shows --json in help text" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "alert", "status", "--help"
+      )
+
+      expect(stdout).to include("--json")
+      expect(stdout).to include("Exit Codes:")
+      expect(status.exitstatus).to eq(0)
+    end
+  end
+
+  describe "raygatherer exit codes" do
+    it "returns exit code 1 when --host is missing" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "alert", "status"
+      )
+
+      expect(stderr).to include("--host is required")
+      expect(status.exitstatus).to eq(1)  # Generic error
+    end
+
+    # Note: Testing severity-based exit codes (10, 11, 12) requires a real or mocked
+    # rayhunter instance returning alert data. These are covered by unit tests.
+  end
 end

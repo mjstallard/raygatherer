@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "optparse"
+require_relative "../../formatters/json"
 
 module Raygatherer
   module Commands
@@ -25,6 +26,7 @@ module Raygatherer
           @host = nil
           @username = nil
           @password = nil
+          @json = false
         end
 
         def run
@@ -46,15 +48,20 @@ module Raygatherer
           data = api_client.fetch_live_analysis_report
           alert = extract_alert(data[:rows])
 
-          formatter = Formatters::Human.new
+          # Select formatter based on --json flag
+          formatter = @json ? Formatters::JSON.new : Formatters::Human.new
           @stdout.puts formatter.format(alert)
 
-          0
+          # Return severity-based exit code
+          severity_exit_code(alert)
         rescue CLI::EarlyExit
           raise
+        rescue ApiClient::ConnectionError, ApiClient::ApiError, ApiClient::ParseError => e
+          @stderr.puts "Error: #{e.message}"
+          1  # Generic error
         rescue => e
           @stderr.puts "Error: #{e.message}"
-          1
+          1  # Generic error
         end
 
         private
@@ -75,6 +82,10 @@ module Raygatherer
 
             opts.on("--basic-auth-password PASS", "Basic auth password") do |p|
               @password = p
+            end
+
+            opts.on("--json", "Output JSON instead of human-readable format") do
+              @json = true
             end
 
             opts.on("-h", "--help", "Show this help message") do
@@ -120,11 +131,36 @@ module Raygatherer
           output.puts "    --host HOST                      Rayhunter host URL (required)"
           output.puts "    --basic-auth-user USER           Basic auth username"
           output.puts "    --basic-auth-password PASS       Basic auth password"
+          output.puts "    --json                           Output JSON (for scripts/piping)"
           output.puts "    -h, --help                       Show this help message"
+          output.puts ""
+          output.puts "Exit Codes:"
+          output.puts "    0   No alerts detected"
+          output.puts "    1   Error (connection, parse, missing --host, etc.)"
+          output.puts "    10  Low severity alert"
+          output.puts "    11  Medium severity alert"
+          output.puts "    12  High severity alert"
           output.puts ""
           output.puts "Examples:"
           output.puts "  raygatherer alert status --host http://192.168.1.100:8080"
-          output.puts "  raygatherer alert status --host http://192.168.1.100:8080 --basic-auth-user admin --basic-auth-password secret"
+          output.puts "  raygatherer alert status --host http://192.168.1.100:8080 --json | jq"
+          output.puts "  raygatherer alert status --host http://rayhunter --json"
+          output.puts "  [ $? -ge 11 ] && telegram-send 'Medium+ severity alert!'"
+        end
+
+        def severity_exit_code(alert)
+          return 0 if alert.nil?  # No alerts
+
+          case alert[:severity]
+          when "Low"
+            10
+          when "Medium"
+            11
+          when "High"
+            12
+          else
+            0  # Unknown severity treated as no alert
+          end
         end
       end
     end

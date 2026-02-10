@@ -187,7 +187,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
         expect(stdout.string).to include("Low severity alert detected")
         expect(stdout.string).to include("Low severity issue")
-        expect(exit_code).to eq(0)
+        expect(exit_code).to eq(10)
       end
 
       it "extracts and displays Medium severity alert" do
@@ -202,7 +202,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
         expect(stdout.string).to include("Medium severity alert detected")
         expect(stdout.string).to include("Connection redirect")
-        expect(exit_code).to eq(0)
+        expect(exit_code).to eq(11)
       end
 
       it "extracts and displays High severity alert" do
@@ -217,7 +217,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
         expect(stdout.string).to include("High severity alert detected")
         expect(stdout.string).to include("Critical threat")
-        expect(exit_code).to eq(0)
+        expect(exit_code).to eq(12)
       end
 
       it "extracts highest severity alert when multiple alerts exist" do
@@ -234,7 +234,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
         expect(stdout.string).to include("High severity alert detected")
         expect(stdout.string).to include("High issue")
-        expect(exit_code).to eq(0)
+        expect(exit_code).to eq(12)
       end
 
       it "handles multiple events in a single row" do
@@ -254,7 +254,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
 
         expect(stdout.string).to include("Medium severity alert detected")
-        expect(exit_code).to eq(0)
+        expect(exit_code).to eq(11)
       end
     end
 
@@ -293,6 +293,199 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         expect(stderr.string).to include("Error: Invalid JSON")
         expect(exit_code).to eq(1)
       end
+    end
+  end
+
+  describe "--json flag" do
+    let(:stdout) { StringIO.new }
+    let(:stderr) { StringIO.new }
+    let(:api_client) { instance_double(Raygatherer::ApiClient) }
+    let(:host) { "http://localhost:8080" }
+
+    before do
+      allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+    end
+
+    it "accepts --json flag" do
+      allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+        metadata: {},
+        rows: []
+      })
+
+      exit_code = described_class.run(
+        ["--host", host, "--json"],
+        stdout: stdout,
+        stderr: stderr
+      )
+
+      expect(exit_code).to eq(0)
+    end
+
+    it "uses JSON formatter when --json is present" do
+      allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+        metadata: {},
+        rows: [{ "events" => [nil, { "event_type" => "High", "message" => "Test alert" }] }]
+      })
+
+      described_class.run(
+        ["--host", host, "--json"],
+        stdout: stdout,
+        stderr: stderr
+      )
+
+      # Output should be valid JSON
+      output = stdout.string.strip
+      expect { ::JSON.parse(output) }.not_to raise_error
+
+      parsed = ::JSON.parse(output)
+      expect(parsed["severity"]).to eq("High")
+      expect(parsed["message"]).to eq("Test alert")
+      expect(parsed["timestamp"]).to match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/)
+    end
+
+    it "uses Human formatter when --json is absent (default)" do
+      allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+        metadata: {},
+        rows: []
+      })
+
+      described_class.run(
+        ["--host", host],
+        stdout: stdout,
+        stderr: stderr
+      )
+
+      # Output should be human-readable (has color codes and emoji)
+      output = stdout.string
+      expect(output).to include("✓")
+      expect(output).to include("No alerts detected")
+    end
+
+    it "--json and --verbose work together (JSON to stdout, verbose to stderr)" do
+      allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+        metadata: {},
+        rows: []
+      })
+
+      described_class.run(
+        ["--host", host, "--json"],
+        stdout: stdout,
+        stderr: stderr,
+        verbose: true
+      )
+
+      # JSON should go to stdout
+      output = stdout.string.strip
+      expect { ::JSON.parse(output) }.not_to raise_error
+
+      # Verbose logs should go to stderr (tested in ApiClient specs)
+    end
+
+    it "JSON output goes to stdout (no colors, no emojis)" do
+      allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+        metadata: {},
+        rows: [{ "events" => [nil, { "event_type" => "High", "message" => "Test" }] }]
+      })
+
+      described_class.run(
+        ["--host", host, "--json"],
+        stdout: stdout,
+        stderr: stderr
+      )
+
+      output = stdout.string.strip
+
+      # Should be valid JSON (no color codes or emojis)
+      expect { ::JSON.parse(output) }.not_to raise_error
+
+      # Should not contain ANSI color codes
+      expect(output).not_to match(/\e\[\d+m/)
+
+      # Should not contain emojis (Human formatter uses ✓, 🚨, ⚠)
+      expect(output).not_to include("✓")
+      expect(output).not_to include("🚨")
+      expect(output).not_to include("⚠")
+    end
+  end
+
+  describe "severity-based exit codes" do
+    let(:stdout) { StringIO.new }
+    let(:stderr) { StringIO.new }
+    let(:api_client) { instance_double(Raygatherer::ApiClient) }
+    let(:host) { "http://localhost:8080" }
+
+    before do
+      allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+    end
+
+    it "returns 0 when no alerts" do
+      allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+        metadata: {},
+        rows: [{ "events" => [nil] }]
+      })
+
+      exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
+
+      expect(exit_code).to eq(0)
+    end
+
+    it "returns 10 for Low severity alert" do
+      allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+        metadata: {},
+        rows: [{ "events" => [nil, { "event_type" => "Low", "message" => "Low issue" }] }]
+      })
+
+      exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
+
+      expect(exit_code).to eq(10)
+    end
+
+    it "returns 11 for Medium severity alert" do
+      allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+        metadata: {},
+        rows: [{ "events" => [nil, { "event_type" => "Medium", "message" => "Medium issue" }] }]
+      })
+
+      exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
+
+      expect(exit_code).to eq(11)
+    end
+
+    it "returns 12 for High severity alert" do
+      allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+        metadata: {},
+        rows: [{ "events" => [nil, { "event_type" => "High", "message" => "High issue" }] }]
+      })
+
+      exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
+
+      expect(exit_code).to eq(12)
+    end
+
+    it "returns 1 for ConnectionError" do
+      allow(api_client).to receive(:fetch_live_analysis_report).and_raise(
+        Raygatherer::ApiClient::ConnectionError, "Connection failed"
+      )
+
+      exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
+
+      expect(exit_code).to eq(1)
+    end
+
+    it "returns 1 for ParseError" do
+      allow(api_client).to receive(:fetch_live_analysis_report).and_raise(
+        Raygatherer::ApiClient::ParseError, "Invalid JSON"
+      )
+
+      exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
+
+      expect(exit_code).to eq(1)
+    end
+
+    it "returns 1 for other errors (missing --host)" do
+      exit_code = described_class.run([], stdout: stdout, stderr: stderr)
+
+      expect(exit_code).to eq(1)
     end
   end
 end
