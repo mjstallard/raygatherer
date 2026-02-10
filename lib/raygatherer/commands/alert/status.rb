@@ -46,7 +46,7 @@ module Raygatherer
             stderr: @stderr
           )
           data = api_client.fetch_live_analysis_report
-          alerts = extract_alerts(data[:rows])
+          alerts = extract_alerts(data[:rows], data[:metadata])
 
           # Select formatter based on --json flag
           formatter = @json ? Formatters::JSON.new : Formatters::Human.new
@@ -95,13 +95,16 @@ module Raygatherer
           end.parse!(@argv)
         end
 
-        def extract_alerts(rows)
+        def extract_alerts(rows, metadata)
+          analyzers = metadata&.dig("analyzers") || []
           alerts = []
 
           rows.each do |row|
             events = row["events"] || []
 
-            events.compact.each do |event|
+            events.each_with_index do |event, index|
+              next if event.nil?
+
               event_type = event["event_type"]
               next unless event_type
 
@@ -111,7 +114,8 @@ module Raygatherer
               alerts << {
                 severity: event_type,
                 message: event["message"],
-                packet_timestamp: row["packet_timestamp"]
+                packet_timestamp: row["packet_timestamp"],
+                analyzer: analyzers.dig(index, "name")
               }
             end
           end

@@ -10,7 +10,8 @@ module Raygatherer
           {
             severity: alert[:severity],
             message: alert[:message],
-            packet_timestamp: alert[:packet_timestamp]
+            packet_timestamp: alert[:packet_timestamp],
+            analyzer: alert[:analyzer]
           }
         end
 

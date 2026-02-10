@@ -175,7 +175,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         expect(exit_code).to eq(0)
       end
 
-      it "extracts and displays Low severity alert" do
+      it "extracts and displays Low severity alert with analyzer name" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
           metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
           rows: [
@@ -187,6 +187,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
         expect(stdout.string).to include("Low severity alert detected")
         expect(stdout.string).to include("Low severity issue")
+        expect(stdout.string).to include("Analyzer A")
         expect(exit_code).to eq(10)
       end
 
@@ -345,6 +346,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
       expect(parsed[0]["severity"]).to eq("High")
       expect(parsed[0]["message"]).to eq("Test alert")
       expect(parsed[0]["packet_timestamp"]).to eq("2024-02-07T14:25:32Z")
+      expect(parsed[0]["analyzer"]).to eq("Analyzer A")
     end
 
     it "uses Human formatter when --json is absent (default)" do

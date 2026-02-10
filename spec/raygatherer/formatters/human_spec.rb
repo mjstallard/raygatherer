@@ -11,19 +11,21 @@ RSpec.describe Raygatherer::Formatters::Human do
       expect(result).to include("\e[0;32")
     end
 
-    it "shows yellow warning for Low severity" do
-      alerts = [{ severity: "Low", message: "Test low alert" }]
+    it "shows yellow warning for Low severity with analyzer and timestamp" do
+      alerts = [{ severity: "Low", message: "Test low alert", analyzer: "Analyzer A", packet_timestamp: "2024-02-07T14:25:32Z" }]
       result = subject.format(alerts)
 
       expect(result).to include("⚠")
       expect(result).to include("Low severity alert detected")
       expect(result).to include("Test low alert")
+      expect(result).to include("Analyzer A")
+      expect(result).to include("2024-02-07T14:25:32Z")
       # Yellow color code
       expect(result).to include("\e[0;33")
     end
 
     it "shows yellow warning for Medium severity" do
-      alerts = [{ severity: "Medium", message: "Connection redirect to 2G detected" }]
+      alerts = [{ severity: "Medium", message: "Connection redirect to 2G detected", analyzer: "Analyzer B", packet_timestamp: "2024-02-07T14:25:33Z" }]
       result = subject.format(alerts)
 
       expect(result).to include("⚠")
@@ -34,7 +36,7 @@ RSpec.describe Raygatherer::Formatters::Human do
     end
 
     it "shows red alert for High severity" do
-      alerts = [{ severity: "High", message: "Critical IMSI catcher detected" }]
+      alerts = [{ severity: "High", message: "Critical IMSI catcher detected", analyzer: "Analyzer A", packet_timestamp: "2024-02-07T14:25:32Z" }]
       result = subject.format(alerts)
 
       expect(result).to include("🚨")
@@ -44,12 +46,17 @@ RSpec.describe Raygatherer::Formatters::Human do
       expect(result).to include("\e[0;31")
     end
 
-    it "handles alerts with symbols for keys" do
-      alerts = [{ severity: "Medium", message: "Test message" }]
+    it "shows multiple alerts separated by blank lines" do
+      alerts = [
+        { severity: "Low", message: "Low issue", analyzer: "Analyzer A", packet_timestamp: "2024-02-07T14:25:32Z" },
+        { severity: "High", message: "High issue", analyzer: "Analyzer B", packet_timestamp: "2024-02-07T14:25:33Z" }
+      ]
       result = subject.format(alerts)
 
-      expect(result).to include("Medium severity alert detected")
-      expect(result).to include("Test message")
+      expect(result).to include("Low issue")
+      expect(result).to include("High issue")
+      expect(result).to include("Analyzer A")
+      expect(result).to include("Analyzer B")
     end
   end
 end

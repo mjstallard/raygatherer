@@ -12,7 +12,7 @@ RSpec.describe Raygatherer::Formatters::JSON do
 
     it "formats single alert as JSON array with one element" do
       formatter = described_class.new
-      alerts = [{ severity: "Low", message: "Low severity issue detected", packet_timestamp: "2024-02-07T14:25:32Z" }]
+      alerts = [{ severity: "Low", message: "Low severity issue detected", packet_timestamp: "2024-02-07T14:25:32Z", analyzer: "Analyzer A" }]
       output = formatter.format(alerts)
 
       parsed = ::JSON.parse(output)
@@ -21,6 +21,7 @@ RSpec.describe Raygatherer::Formatters::JSON do
       expect(parsed[0]["severity"]).to eq("Low")
       expect(parsed[0]["message"]).to eq("Low severity issue detected")
       expect(parsed[0]["packet_timestamp"]).to eq("2024-02-07T14:25:32Z")
+      expect(parsed[0]["analyzer"]).to eq("Analyzer A")
     end
 
     it "formats multiple alerts as JSON array" do
@@ -49,14 +50,14 @@ RSpec.describe Raygatherer::Formatters::JSON do
 
     it "output is valid JSON array (parseable)" do
       formatter = described_class.new
-      alerts = [{ severity: "High", message: "Test message", packet_timestamp: "2024-02-07T14:25:32Z" }]
+      alerts = [{ severity: "High", message: "Test message", packet_timestamp: "2024-02-07T14:25:32Z", analyzer: "Analyzer A" }]
       output = formatter.format(alerts)
 
       expect { ::JSON.parse(output) }.not_to raise_error
 
       parsed = ::JSON.parse(output)
       expect(parsed).to be_an(Array)
-      expect(parsed[0].keys).to contain_exactly("severity", "message", "packet_timestamp")
+      expect(parsed[0].keys).to contain_exactly("severity", "message", "packet_timestamp", "analyzer")
     end
   end
 end

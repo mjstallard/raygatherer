@@ -18,11 +18,15 @@ module Raygatherer
       def format_alert(alert_data)
         severity = alert_data[:severity]
         message = alert_data[:message]
+        analyzer = alert_data[:analyzer]
+        timestamp = alert_data[:packet_timestamp]
 
         icon = severity == "High" ? "🚨" : "⚠"
         color = severity == "High" ? :red : :yellow
 
         output = "#{icon} #{severity} severity alert detected\n"
+        output += "Analyzer: #{analyzer}\n" if analyzer
+        output += "Time: #{timestamp}\n" if timestamp
         output += "Message: #{message}"
         output.colorize(color)
       end
