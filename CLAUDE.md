@@ -1,3 +1,28 @@
+# PROJECT OVERVIEW
+
+Raygatherer: Ruby CLI for fetching and displaying alerts from Rayhunter (cell tower / IMSI catcher analysis device). Ruby >= 3.1.0.
+
+# QUICK REFERENCE
+
+- Run tests: `bundle exec rspec`
+- Run CLI: `bundle exec ./exe/raygatherer`
+- CI: GitHub Actions on push to master and all PRs
+
+# ARCHITECTURE
+
+- Entry point: `exe/raygatherer` → `Raygatherer::CLI.run`
+- CLI routing: `lib/raygatherer/cli.rb`
+- Commands: `lib/raygatherer/commands/` (one class per subcommand)
+- API client: `lib/raygatherer/api_client.rb` (HTTP + NDJSON parsing)
+- Formatters: `lib/raygatherer/formatters/` (human and JSON, both accept arrays)
+- Tests mirror `lib/` structure under `spec/`, plus `spec/integration/` for CLI end-to-end tests
+
+# KEY CONVENTIONS
+
+- Formatters always receive and return arrays (even when empty)
+- JSON output is always a JSON array
+- Exit codes encode alert severity for scripting use (see `show_help` in status.rb)
+- No RuboCop configured
 
 # ROLE AND EXPERTISE
 
