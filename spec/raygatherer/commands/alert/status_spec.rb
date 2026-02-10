@@ -262,6 +262,75 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
       end
     end
 
+    describe "--latest flag" do
+      let(:host) { "http://localhost:8080" }
+
+      it "shows only alerts from the most recent packet_timestamp" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          rows: [
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old high alert" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Latest low alert" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, { "event_type" => "Medium", "message" => "Middle medium alert" }] }
+          ]
+        })
+
+        exit_code = described_class.run(["--host", host, "--latest"], stdout: stdout, stderr: stderr)
+
+        expect(stdout.string).to include("Latest low alert")
+        expect(stdout.string).not_to include("Old high alert")
+        expect(stdout.string).not_to include("Middle medium alert")
+        expect(exit_code).to eq(10)
+      end
+
+      it "exit code reflects latest message severity, not overall highest" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          rows: [
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old high" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Latest low" }] }
+          ]
+        })
+
+        exit_code = described_class.run(["--host", host, "--latest"], stdout: stdout, stderr: stderr)
+
+        expect(exit_code).to eq(10)
+      end
+
+      it "--json --latest returns JSON array of latest alerts" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          rows: [
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old high" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Latest low" }] }
+          ]
+        })
+
+        exit_code = described_class.run(["--host", host, "--latest", "--json"], stdout: stdout, stderr: stderr)
+
+        parsed = ::JSON.parse(stdout.string.strip)
+        expect(parsed).to be_an(Array)
+        expect(parsed.length).to eq(1)
+        expect(parsed[0]["message"]).to eq("Latest low")
+        expect(exit_code).to eq(10)
+      end
+
+      it "returns no alerts when latest row has only Informational events" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          rows: [
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old high" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Informational", "message" => "Info only" }] }
+          ]
+        })
+
+        exit_code = described_class.run(["--host", host, "--latest"], stdout: stdout, stderr: stderr)
+
+        expect(stdout.string).to include("No alerts detected")
+        expect(exit_code).to eq(0)
+      end
+    end
+
     describe "error handling" do
       let(:host) { "http://localhost:8080" }
 

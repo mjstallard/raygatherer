@@ -27,6 +27,7 @@ module Raygatherer
           @username = nil
           @password = nil
           @json = false
+          @latest = false
         end
 
         def run
@@ -47,6 +48,7 @@ module Raygatherer
           )
           data = api_client.fetch_live_analysis_report
           alerts = extract_alerts(data[:rows], data[:metadata])
+          alerts = filter_latest(alerts, data[:rows]) if @latest
 
           # Select formatter based on --json flag
           formatter = @json ? Formatters::JSON.new : Formatters::Human.new
@@ -88,6 +90,10 @@ module Raygatherer
               @json = true
             end
 
+            opts.on("--latest", "Show only alerts from the most recent message") do
+              @latest = true
+            end
+
             opts.on("-h", "--help", "Show this help message") do
               show_help
               raise CLI::EarlyExit, 0
@@ -121,6 +127,13 @@ module Raygatherer
           end
 
           alerts
+        end
+
+        def filter_latest(alerts, rows)
+          latest_timestamp = rows.map { |r| r["packet_timestamp"] }.max
+          return [] if latest_timestamp.nil?
+
+          alerts.select { |a| a[:packet_timestamp] == latest_timestamp }
         end
 
         def show_help(output = @stdout)
