@@ -144,6 +144,7 @@ module Raygatherer
           output.puts "    --basic-auth-user USER           Basic auth username"
           output.puts "    --basic-auth-password PASS       Basic auth password"
           output.puts "    --json                           Output JSON (for scripts/piping)"
+          output.puts "    --latest                         Show only alerts from the most recent message"
           output.puts "    -h, --help                       Show this help message"
           output.puts ""
           output.puts "Exit Codes:"
