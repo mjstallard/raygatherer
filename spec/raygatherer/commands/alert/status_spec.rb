@@ -336,14 +336,15 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         stderr: stderr
       )
 
-      # Output should be valid JSON
       output = stdout.string.strip
       expect { ::JSON.parse(output) }.not_to raise_error
 
       parsed = ::JSON.parse(output)
-      expect(parsed["severity"]).to eq("High")
-      expect(parsed["message"]).to eq("Test alert")
-      expect(parsed["timestamp"]).to match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/)
+      expect(parsed).to be_an(Array)
+      expect(parsed.length).to eq(1)
+      expect(parsed[0]["severity"]).to eq("High")
+      expect(parsed[0]["message"]).to eq("Test alert")
+      expect(parsed[0]["packet_timestamp"]).to eq("2024-02-07T14:25:32Z")
     end
 
     it "uses Human formatter when --json is absent (default)" do
@@ -398,8 +399,9 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
       output = stdout.string.strip
 
-      # Should be valid JSON (no color codes or emojis)
-      expect { ::JSON.parse(output) }.not_to raise_error
+      # Should be valid JSON array (no color codes or emojis)
+      parsed = ::JSON.parse(output)
+      expect(parsed).to be_an(Array)
 
       # Should not contain ANSI color codes
       expect(output).not_to match(/\e\[\d+m/)

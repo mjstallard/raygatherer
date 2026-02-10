@@ -110,7 +110,8 @@ module Raygatherer
 
               alerts << {
                 severity: event_type,
-                message: event["message"]
+                message: event["message"],
+                packet_timestamp: row["packet_timestamp"]
               }
             end
           end
