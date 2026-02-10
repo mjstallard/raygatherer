@@ -81,4 +81,45 @@ RSpec.describe "CLI Integration" do
     # rayhunter instance or a test HTTP server. Those scenarios are covered by
     # unit tests with mocked HTTP responses.
   end
+
+  describe "raygatherer --verbose" do
+    it "accepts --verbose flag before command" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "--verbose", "alert", "status", "--host", "http://localhost:9999"
+      )
+
+      # Will fail to connect, but should show verbose output
+      expect(stderr).to include("HTTP GET http://localhost:9999/api/analysis-report/live")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "accepts --verbose flag after command" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "alert", "status", "--verbose", "--host", "http://localhost:9999"
+      )
+
+      expect(stderr).to include("HTTP GET")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "does not output verbose logs without flag" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "alert", "status", "--host", "http://localhost:9999"
+      )
+
+      expect(stderr).not_to include("HTTP GET")
+      expect(stderr).not_to include("Request started")
+      expect(stderr).to include("Error") # Regular error message
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "verbose output goes to stderr, not stdout" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "--verbose", "alert", "status", "--host", "http://localhost:9999"
+      )
+
+      expect(stdout).to be_empty # No verbose in stdout
+      expect(stderr).to include("HTTP GET") # Verbose in stderr
+    end
+  end
 end

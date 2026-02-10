@@ -150,4 +150,151 @@ RSpec.describe Raygatherer::ApiClient do
       )
     end
   end
+
+  describe "verbose logging" do
+    let(:stderr) { StringIO.new }
+    let(:verbose_client) { described_class.new(host, verbose: true, stderr: stderr) }
+
+    let(:ndjson_response) do
+      <<~NDJSON.chomp
+        {"report_version":2}
+        {"events":[null]}
+      NDJSON
+    end
+
+    it "accepts verbose and stderr parameters" do
+      expect { verbose_client }.not_to raise_error
+    end
+
+    it "defaults verbose to false and stderr to $stderr" do
+      client = described_class.new(host)
+      expect(client.instance_variable_get(:@verbose)).to eq(false)
+      expect(client.instance_variable_get(:@stderr)).to eq($stderr)
+    end
+
+    describe "verbose output" do
+      it "logs HTTP request details" do
+        stub_request(:get, "#{host}/api/analysis-report/live")
+          .to_return(status: 200, body: ndjson_response)
+
+        verbose_client.fetch_live_analysis_report
+
+        expect(stderr.string).to include("HTTP GET #{host}/api/analysis-report/live")
+      end
+
+      it "logs request timing" do
+        stub_request(:get, "#{host}/api/analysis-report/live")
+          .to_return(status: 200, body: ndjson_response)
+
+        verbose_client.fetch_live_analysis_report
+
+        expect(stderr.string).to match(/Request started at:/)
+        expect(stderr.string).to match(/Response received: 200 OK \(\d+\.\d+s\)/)
+      end
+
+      it "logs raw response body BEFORE parsing" do
+        stub_request(:get, "#{host}/api/analysis-report/live")
+          .to_return(status: 200, body: ndjson_response)
+
+        verbose_client.fetch_live_analysis_report
+
+        output = stderr.string
+        expect(output).to include("Raw response body")
+        expect(output).to include('{"report_version":2}')
+        expect(output).to include('{"events":[null]}')
+
+        # Verify raw body appears BEFORE parsing message
+        raw_index = output.index("Raw response body")
+        parse_index = output.index("Parsing NDJSON")
+        expect(raw_index).to be < parse_index
+      end
+
+      it "logs basic auth username (but not password)" do
+        auth_client = described_class.new(
+          host,
+          username: "testuser",
+          password: "secret123",
+          verbose: true,
+          stderr: stderr
+        )
+
+        stub_request(:get, "#{host}/api/analysis-report/live")
+          .with(basic_auth: ["testuser", "secret123"])
+          .to_return(status: 200, body: ndjson_response)
+
+        auth_client.fetch_live_analysis_report
+
+        expect(stderr.string).to include("Basic Auth: user=testuser")
+        expect(stderr.string).not_to include("secret123")
+      end
+
+      it "logs parse success" do
+        stub_request(:get, "#{host}/api/analysis-report/live")
+          .to_return(status: 200, body: ndjson_response)
+
+        verbose_client.fetch_live_analysis_report
+
+        expect(stderr.string).to match(/Parsed successfully: metadata \+ \d+ rows?/)
+      end
+    end
+
+    describe "verbose output on errors" do
+      it "logs raw body even when parse fails (CRITICAL BUG FIX)" do
+        bad_json = "{invalid json here}"
+
+        stub_request(:get, "#{host}/api/analysis-report/live")
+          .to_return(status: 200, body: bad_json)
+
+        expect { verbose_client.fetch_live_analysis_report }.to raise_error(
+          Raygatherer::ApiClient::ParseError
+        )
+
+        # CRITICAL: Raw body must be logged BEFORE parse attempt
+        output = stderr.string
+        expect(output).to include("Raw response body")
+        expect(output).to include("{invalid json here}")
+        expect(output).to include("Parse failed:")
+      end
+
+      it "logs connection errors" do
+        stub_request(:get, "#{host}/api/analysis-report/live")
+          .to_raise(SocketError.new("Failed to open TCP connection"))
+
+        expect { verbose_client.fetch_live_analysis_report }.to raise_error(
+          Raygatherer::ApiClient::ConnectionError
+        )
+
+        output = stderr.string
+        expect(output).to include("HTTP GET #{host}/api/analysis-report/live")
+        expect(output).to include("Connection error:")
+      end
+
+      it "logs HTTP error responses with body" do
+        stub_request(:get, "#{host}/api/analysis-report/live")
+          .to_return(status: 500, body: "Internal Server Error")
+
+        expect { verbose_client.fetch_live_analysis_report }.to raise_error(
+          Raygatherer::ApiClient::ApiError
+        )
+
+        output = stderr.string
+        expect(output).to include("Response received: 500")
+        expect(output).to include("Raw response body")
+        expect(output).to include("Internal Server Error")
+      end
+    end
+
+    describe "non-verbose mode" do
+      it "does not log when verbose is false" do
+        non_verbose_client = described_class.new(host, verbose: false, stderr: stderr)
+
+        stub_request(:get, "#{host}/api/analysis-report/live")
+          .to_return(status: 200, body: ndjson_response)
+
+        non_verbose_client.fetch_live_analysis_report
+
+        expect(stderr.string).to be_empty
+      end
+    end
+  end
 end

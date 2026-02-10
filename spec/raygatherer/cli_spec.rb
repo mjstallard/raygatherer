@@ -73,7 +73,8 @@ RSpec.describe Raygatherer::CLI do
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
           ["--host", "http://test"],
           stdout: stdout,
-          stderr: stderr
+          stderr: stderr,
+          verbose: false
         )
         expect(exit_code).to eq(0)
       end
@@ -86,7 +87,8 @@ RSpec.describe Raygatherer::CLI do
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
           ["--host", "http://test", "--json"],
           stdout: stdout,
-          stderr: stderr
+          stderr: stderr,
+          verbose: false
         )
       end
 
@@ -119,6 +121,58 @@ RSpec.describe Raygatherer::CLI do
 
         expect(stderr.string).to include("Usage:")
         expect(exit_code).to eq(1)
+      end
+    end
+
+    describe "--verbose flag" do
+      it "extracts --verbose before command routing" do
+        allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
+
+        described_class.run(["--verbose", "alert", "status", "--host", "http://test"],
+                            stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
+          ["--host", "http://test"],
+          stdout: stdout,
+          stderr: stderr,
+          verbose: true
+        )
+      end
+
+      it "passes verbose: false when flag not present" do
+        allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
+
+        described_class.run(["alert", "status", "--host", "http://test"],
+                            stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
+          ["--host", "http://test"],
+          stdout: stdout,
+          stderr: stderr,
+          verbose: false
+        )
+      end
+
+      it "works with --verbose anywhere in global position" do
+        allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
+
+        described_class.run(["alert", "status", "--verbose", "--host", "http://test"],
+                            stdout: stdout, stderr: stderr)
+
+        # --verbose should be extracted, not passed to command
+        expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
+          ["--host", "http://test"],
+          stdout: stdout,
+          stderr: stderr,
+          verbose: true
+        )
+      end
+
+      it "shows help when only --verbose is provided" do
+        exit_code = described_class.run(["--verbose"], stdout: stdout, stderr: stderr)
+
+        expect(stdout.string).to include("Usage:")
+        expect(exit_code).to eq(0)
       end
     end
   end

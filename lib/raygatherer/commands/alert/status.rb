@@ -13,14 +13,15 @@ module Raygatherer
           "High" => 3
         }.freeze
 
-        def self.run(argv, stdout: $stdout, stderr: $stderr)
-          new(argv, stdout: stdout, stderr: stderr).run
+        def self.run(argv, stdout: $stdout, stderr: $stderr, verbose: false)
+          new(argv, stdout: stdout, stderr: stderr, verbose: verbose).run
         end
 
-        def initialize(argv, stdout: $stdout, stderr: $stderr)
+        def initialize(argv, stdout: $stdout, stderr: $stderr, verbose: false)
           @argv = argv
           @stdout = stdout
           @stderr = stderr
+          @verbose = verbose
           @host = nil
           @username = nil
           @password = nil
@@ -35,7 +36,13 @@ module Raygatherer
             return 1
           end
 
-          api_client = ApiClient.new(@host, username: @username, password: @password)
+          api_client = ApiClient.new(
+            @host,
+            username: @username,
+            password: @password,
+            verbose: @verbose,
+            stderr: @stderr
+          )
           data = api_client.fetch_live_analysis_report
           alert = extract_alert(data[:rows])
 

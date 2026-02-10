@@ -22,9 +22,13 @@ module Raygatherer
       @argv = argv
       @stdout = stdout
       @stderr = stderr
+      @verbose = false
     end
 
     def run
+      # Extract --verbose BEFORE processing
+      @verbose = @argv.delete("--verbose") ? true : false
+
       if @argv.empty?
         show_help
         return 0
@@ -42,7 +46,12 @@ module Raygatherer
 
       if command == "alert" && subcommand == "status"
         require_relative "commands/alert/status"
-        return Commands::Alert::Status.run(@argv, stdout: @stdout, stderr: @stderr)
+        return Commands::Alert::Status.run(
+          @argv,
+          stdout: @stdout,
+          stderr: @stderr,
+          verbose: @verbose
+        )
       end
 
       # Unknown command
@@ -86,6 +95,7 @@ module Raygatherer
       output.puts "Options:"
       output.puts "    -v, --version                    Show version"
       output.puts "    -h, --help                       Show this help message"
+      output.puts "        --verbose                    Show detailed HTTP request/response information"
       output.puts ""
       output.puts "Commands:"
       output.puts "    alert status                     Check for active IMSI catcher alerts"

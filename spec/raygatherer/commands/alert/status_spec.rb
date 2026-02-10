@@ -42,7 +42,9 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         expect(Raygatherer::ApiClient).to have_received(:new).with(
           "http://test",
           username: "user",
-          password: "pass"
+          password: "pass",
+          verbose: false,
+          stderr: stderr
         )
       end
 
@@ -57,7 +59,50 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         expect(Raygatherer::ApiClient).to have_received(:new).with(
           "http://test",
           username: nil,
-          password: nil
+          password: nil,
+          verbose: false,
+          stderr: stderr
+        )
+      end
+    end
+
+    describe "verbose flag" do
+      it "accepts verbose parameter and passes to ApiClient" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: {},
+          rows: []
+        })
+
+        described_class.run(
+          ["--host", "http://test"],
+          stdout: stdout,
+          stderr: stderr,
+          verbose: true
+        )
+
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://test",
+          username: nil,
+          password: nil,
+          verbose: true,
+          stderr: stderr
+        )
+      end
+
+      it "defaults verbose to false" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: {},
+          rows: []
+        })
+
+        described_class.run(["--host", "http://test"], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://test",
+          username: nil,
+          password: nil,
+          verbose: false,
+          stderr: stderr
         )
       end
     end
@@ -92,7 +137,13 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
         described_class.run(["--host", host], stdout: stdout, stderr: stderr)
 
-        expect(Raygatherer::ApiClient).to have_received(:new).with(host, username: nil, password: nil)
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          host,
+          username: nil,
+          password: nil,
+          verbose: false,
+          stderr: stderr
+        )
       end
 
       it "outputs no alerts message when no events found" do

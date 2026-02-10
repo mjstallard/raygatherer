@@ -9,28 +9,57 @@ module Raygatherer
     class ConnectionError < StandardError; end
     class ParseError < StandardError; end
 
-    def initialize(host, username: nil, password: nil)
+    def initialize(host, username: nil, password: nil, verbose: false, stderr: $stderr)
       @host = normalize_host(host)
       @username = username
       @password = password
+      @verbose = verbose
+      @stderr = stderr
     end
 
     def fetch_live_analysis_report
       options = {}
       options[:basic_auth] = { username: @username, password: @password } if @username && @password
 
+      log_verbose "HTTP GET #{@host}/api/analysis-report/live"
+      log_verbose "Basic Auth: user=#{@username}" if @username
+
+      start_time = Time.now
+      log_verbose "Request started at: #{start_time.utc}"
+
       response = HTTParty.get("#{@host}/api/analysis-report/live", options)
+
+      elapsed = Time.now - start_time
+      status_text = response.code == 200 ? "OK" : response.message.to_s
+      log_verbose "Response received: #{response.code} #{status_text} (#{format('%.3f', elapsed)}s)"
+
+      # CRITICAL: Log raw body BEFORE any parsing attempt
+      log_verbose "Raw response body (#{response.body.bytesize} bytes):"
+      log_verbose response.body if @verbose
 
       unless response.success?
         raise ApiError, "Server returned #{response.code}: #{response.message}"
       end
 
-      parse_ndjson(response.body)
+      log_verbose "Parsing NDJSON response..."
+      result = parse_ndjson(response.body)
+      log_verbose "Parsed successfully: metadata + #{result[:rows].length} rows"
+
+      result
     rescue SocketError, Errno::ECONNREFUSED, Net::OpenTimeout, Net::ReadTimeout => e
+      log_verbose "Connection error: #{e.class} - #{e.message}"
       raise ConnectionError, "Failed to connect to #{@host}: #{e.message}"
+    rescue ParseError => e
+      log_verbose "Parse failed: #{e.message}"
+      raise
     end
 
     private
+
+    def log_verbose(message)
+      return unless @verbose
+      @stderr.puts message
+    end
 
     def parse_ndjson(body)
       lines = body.split("\n").reject(&:empty?)
