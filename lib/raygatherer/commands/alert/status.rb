@@ -54,7 +54,7 @@ module Raygatherer
           @stdout.puts formatter.format(alerts)
 
           # Return severity-based exit code
-          severity_exit_code(alert)
+          severity_exit_code(alerts)
         rescue CLI::EarlyExit
           raise
         rescue ApiClient::ConnectionError, ApiClient::ApiError, ApiClient::ParseError => e
@@ -149,18 +149,15 @@ module Raygatherer
           output.puts "  [ $? -ge 11 ] && telegram-send 'Medium+ severity alert!'"
         end
 
-        def severity_exit_code(alert)
-          return 0 if alert.nil?  # No alerts
+        def severity_exit_code(alerts)
+          return 0 if alerts.empty?
 
-          case alert[:severity]
-          when "Low"
-            10
-          when "Medium"
-            11
-          when "High"
-            12
-          else
-            0  # Unknown severity treated as no alert
+          max_severity = alerts.map { |a| SEVERITY_ORDER[a[:severity]] || 0 }.max
+          case max_severity
+          when 1 then 10
+          when 2 then 11
+          when 3 then 12
+          else 0
           end
         end
       end
