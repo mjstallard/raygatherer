@@ -220,7 +220,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         expect(exit_code).to eq(12)
       end
 
-      it "extracts highest severity alert when multiple alerts exist" do
+      it "shows all alerts when multiple exist" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
           metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
           rows: [
@@ -232,8 +232,9 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
         exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
 
-        expect(stdout.string).to include("High severity alert detected")
+        expect(stdout.string).to include("Low issue")
         expect(stdout.string).to include("High issue")
+        expect(stdout.string).to include("Medium issue")
         expect(exit_code).to eq(12)
       end
 
@@ -254,7 +255,8 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
         exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
 
-        expect(stdout.string).to include("Medium severity alert detected")
+        expect(stdout.string).to include("Low issue")
+        expect(stdout.string).to include("Medium issue")
         expect(exit_code).to eq(11)
       end
     end

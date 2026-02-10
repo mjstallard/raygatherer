@@ -46,8 +46,7 @@ module Raygatherer
             stderr: @stderr
           )
           data = api_client.fetch_live_analysis_report
-          alert = extract_alert(data[:rows])
-          alerts = [alert].compact
+          alerts = extract_alerts(data[:rows])
 
           # Select formatter based on --json flag
           formatter = @json ? Formatters::JSON.new : Formatters::Human.new
@@ -96,9 +95,8 @@ module Raygatherer
           end.parse!(@argv)
         end
 
-        def extract_alert(rows)
-          highest_alert = nil
-          highest_severity = 0
+        def extract_alerts(rows)
+          alerts = []
 
           rows.each do |row|
             events = row["events"] || []
@@ -108,21 +106,16 @@ module Raygatherer
               next unless event_type
 
               severity_level = SEVERITY_ORDER[event_type] || 0
-
-              # Skip Informational events
               next if severity_level == 0
 
-              if severity_level > highest_severity
-                highest_severity = severity_level
-                highest_alert = {
-                  severity: event_type,
-                  message: event["message"]
-                }
-              end
+              alerts << {
+                severity: event_type,
+                message: event["message"]
+              }
             end
           end
 
-          highest_alert
+          alerts
         end
 
         def show_help(output = @stdout)
