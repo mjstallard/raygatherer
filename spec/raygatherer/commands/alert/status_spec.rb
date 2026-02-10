@@ -331,6 +331,39 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
       end
     end
 
+    describe "edge cases" do
+      let(:host) { "http://localhost:8080" }
+
+      it "handles missing analyzer name gracefully" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil] },
+          rows: [
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Alert without analyzer" }] }
+          ]
+        })
+
+        exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
+
+        expect(stdout.string).to include("Alert without analyzer")
+        expect(stdout.string).not_to include("Analyzer:")
+        expect(exit_code).to eq(12)
+      end
+
+      it "handles missing metadata gracefully" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: {},
+          rows: [
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Low", "message" => "Alert no metadata" }] }
+          ]
+        })
+
+        exit_code = described_class.run(["--host", host], stdout: stdout, stderr: stderr)
+
+        expect(stdout.string).to include("Alert no metadata")
+        expect(exit_code).to eq(10)
+      end
+    end
+
     describe "error handling" do
       let(:host) { "http://localhost:8080" }
 
