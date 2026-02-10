@@ -3,7 +3,7 @@
 RSpec.describe Raygatherer::Formatters::Human do
   describe "#format" do
     it "shows green checkmark when no alerts" do
-      result = subject.format(nil)
+      result = subject.format([])
 
       expect(result).to include("✓")
       expect(result).to include("No alerts detected")
@@ -12,8 +12,8 @@ RSpec.describe Raygatherer::Formatters::Human do
     end
 
     it "shows yellow warning for Low severity" do
-      alert = { severity: "Low", message: "Test low alert" }
-      result = subject.format(alert)
+      alerts = [{ severity: "Low", message: "Test low alert" }]
+      result = subject.format(alerts)
 
       expect(result).to include("⚠")
       expect(result).to include("Low severity alert detected")
@@ -23,8 +23,8 @@ RSpec.describe Raygatherer::Formatters::Human do
     end
 
     it "shows yellow warning for Medium severity" do
-      alert = { severity: "Medium", message: "Connection redirect to 2G detected" }
-      result = subject.format(alert)
+      alerts = [{ severity: "Medium", message: "Connection redirect to 2G detected" }]
+      result = subject.format(alerts)
 
       expect(result).to include("⚠")
       expect(result).to include("Medium severity alert detected")
@@ -34,8 +34,8 @@ RSpec.describe Raygatherer::Formatters::Human do
     end
 
     it "shows red alert for High severity" do
-      alert = { severity: "High", message: "Critical IMSI catcher detected" }
-      result = subject.format(alert)
+      alerts = [{ severity: "High", message: "Critical IMSI catcher detected" }]
+      result = subject.format(alerts)
 
       expect(result).to include("🚨")
       expect(result).to include("High severity alert detected")
@@ -45,8 +45,8 @@ RSpec.describe Raygatherer::Formatters::Human do
     end
 
     it "handles alerts with symbols for keys" do
-      alert = { severity: "Medium", message: "Test message" }
-      result = subject.format(alert)
+      alerts = [{ severity: "Medium", message: "Test message" }]
+      result = subject.format(alerts)
 
       expect(result).to include("Medium severity alert detected")
       expect(result).to include("Test message")

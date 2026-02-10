@@ -5,11 +5,11 @@ require "colorize"
 module Raygatherer
   module Formatters
     class Human
-      def format(alert_data)
-        if alert_data.nil?
+      def format(alerts)
+        if alerts.empty?
           "✓ No alerts detected".green
         else
-          format_alert(alert_data)
+          alerts.map { |alert| format_alert(alert) }.join("\n\n")
         end
       end
 

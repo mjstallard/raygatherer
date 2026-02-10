@@ -2,9 +2,9 @@
 
 RSpec.describe Raygatherer::Formatters::JSON do
   describe "#format" do
-    it "formats nil alert as JSON with null severity/message" do
+    it "formats empty alerts as JSON with null severity/message" do
       formatter = described_class.new
-      output = formatter.format(nil)
+      output = formatter.format([])
 
       parsed = ::JSON.parse(output)
       expect(parsed["severity"]).to be_nil
@@ -14,8 +14,8 @@ RSpec.describe Raygatherer::Formatters::JSON do
 
     it "formats Low severity alert as JSON" do
       formatter = described_class.new
-      alert_data = { severity: "Low", message: "Low severity issue detected" }
-      output = formatter.format(alert_data)
+      alerts = [{ severity: "Low", message: "Low severity issue detected" }]
+      output = formatter.format(alerts)
 
       parsed = ::JSON.parse(output)
       expect(parsed["severity"]).to eq("Low")
@@ -25,8 +25,8 @@ RSpec.describe Raygatherer::Formatters::JSON do
 
     it "formats Medium severity alert as JSON" do
       formatter = described_class.new
-      alert_data = { severity: "Medium", message: "Connection redirect detected" }
-      output = formatter.format(alert_data)
+      alerts = [{ severity: "Medium", message: "Connection redirect detected" }]
+      output = formatter.format(alerts)
 
       parsed = ::JSON.parse(output)
       expect(parsed["severity"]).to eq("Medium")
@@ -36,8 +36,8 @@ RSpec.describe Raygatherer::Formatters::JSON do
 
     it "formats High severity alert as JSON" do
       formatter = described_class.new
-      alert_data = { severity: "High", message: "IMSI catcher detected" }
-      output = formatter.format(alert_data)
+      alerts = [{ severity: "High", message: "IMSI catcher detected" }]
+      output = formatter.format(alerts)
 
       parsed = ::JSON.parse(output)
       expect(parsed["severity"]).to eq("High")
@@ -47,8 +47,8 @@ RSpec.describe Raygatherer::Formatters::JSON do
 
     it "includes ISO 8601 timestamp in UTC" do
       formatter = described_class.new
-      alert_data = { severity: "High", message: "Test" }
-      output = formatter.format(alert_data)
+      alerts = [{ severity: "High", message: "Test" }]
+      output = formatter.format(alerts)
 
       parsed = ::JSON.parse(output)
       # ISO 8601 format: 2024-02-08T15:30:45Z
@@ -60,8 +60,8 @@ RSpec.describe Raygatherer::Formatters::JSON do
 
     it "output is valid JSON (parseable)" do
       formatter = described_class.new
-      alert_data = { severity: "High", message: "Test message" }
-      output = formatter.format(alert_data)
+      alerts = [{ severity: "High", message: "Test message" }]
+      output = formatter.format(alerts)
 
       # Should not raise error
       expect { ::JSON.parse(output) }.not_to raise_error

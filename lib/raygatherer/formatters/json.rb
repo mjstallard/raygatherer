@@ -6,10 +6,11 @@ require "time"
 module Raygatherer
   module Formatters
     class JSON
-      def format(alert_data)
+      def format(alerts)
+        alert = alerts.first
         output = {
-          severity: alert_data&.dig(:severity),
-          message: alert_data&.dig(:message),
+          severity: alert&.dig(:severity),
+          message: alert&.dig(:message),
           timestamp: Time.now.utc.iso8601
         }
 

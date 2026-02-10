@@ -47,10 +47,11 @@ module Raygatherer
           )
           data = api_client.fetch_live_analysis_report
           alert = extract_alert(data[:rows])
+          alerts = [alert].compact
 
           # Select formatter based on --json flag
           formatter = @json ? Formatters::JSON.new : Formatters::Human.new
-          @stdout.puts formatter.format(alert)
+          @stdout.puts formatter.format(alerts)
 
           # Return severity-based exit code
           severity_exit_code(alert)
