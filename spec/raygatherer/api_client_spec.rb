@@ -399,4 +399,81 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result["entries"]).to be_an(Array)
     end
   end
+
+  describe "#fetch_system_stats" do
+    let(:stats_response) do
+      {
+        "disk_stats" => { "partition" => "/dev/sda1", "total_size" => "128G", "used_size" => "64G",
+                          "available_size" => "64G", "used_percent" => "50%", "mounted_on" => "/data" },
+        "memory_stats" => { "total" => "28.3M", "used" => "15.1M", "free" => "13.2M" },
+        "runtime_metadata" => { "rayhunter_version" => "1.2.3", "system_os" => "Linux 3.18.48", "arch" => "armv7l" },
+        "battery_status" => { "level" => 85, "is_plugged_in" => true }
+      }
+    end
+
+    it "parses JSON response into a hash" do
+      stub_request(:get, "#{host}/api/system-stats")
+        .to_return(status: 200, body: ::JSON.generate(stats_response))
+
+      result = client.fetch_system_stats
+
+      expect(result).to have_key("disk_stats")
+      expect(result).to have_key("memory_stats")
+      expect(result).to have_key("runtime_metadata")
+      expect(result["disk_stats"]["total_size"]).to eq("128G")
+    end
+
+    it "handles optional battery_status" do
+      no_battery = stats_response.reject { |k, _| k == "battery_status" }
+      stub_request(:get, "#{host}/api/system-stats")
+        .to_return(status: 200, body: ::JSON.generate(no_battery))
+
+      result = client.fetch_system_stats
+
+      expect(result).not_to have_key("battery_status")
+      expect(result["disk_stats"]["total_size"]).to eq("128G")
+    end
+
+    it "handles HTTP errors" do
+      stub_request(:get, "#{host}/api/system-stats")
+        .to_return(status: 500, body: "Internal Server Error")
+
+      expect { client.fetch_system_stats }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 500/
+      )
+    end
+
+    it "handles connection errors" do
+      stub_request(:get, "#{host}/api/system-stats")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.fetch_system_stats }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+
+    it "handles malformed JSON" do
+      stub_request(:get, "#{host}/api/system-stats")
+        .to_return(status: 200, body: "not json")
+
+      expect { client.fetch_system_stats }.to raise_error(
+        Raygatherer::ApiClient::ParseError,
+        /Failed to parse/
+      )
+    end
+
+    it "sends basic auth credentials when configured" do
+      auth_client = described_class.new(host, username: "user", password: "pass")
+
+      stub_request(:get, "#{host}/api/system-stats")
+        .with(basic_auth: ["user", "pass"])
+        .to_return(status: 200, body: ::JSON.generate(stats_response))
+
+      result = auth_client.fetch_system_stats
+
+      expect(result["disk_stats"]).to be_a(Hash)
+    end
+  end
 end
