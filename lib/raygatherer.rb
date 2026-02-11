@@ -6,6 +6,7 @@ require_relative "raygatherer/api_client"
 require_relative "raygatherer/formatters/human"
 require_relative "raygatherer/formatters/json"
 require_relative "raygatherer/formatters/recording_list_json"
+require_relative "raygatherer/formatters/recording_list_human"
 require_relative "raygatherer/commands/alert/status"
 
 module Raygatherer
