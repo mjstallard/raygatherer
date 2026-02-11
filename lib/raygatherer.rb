@@ -7,8 +7,11 @@ require_relative "raygatherer/formatters/human"
 require_relative "raygatherer/formatters/json"
 require_relative "raygatherer/formatters/recording_list_json"
 require_relative "raygatherer/formatters/recording_list_human"
+require_relative "raygatherer/formatters/stats_json"
+require_relative "raygatherer/formatters/stats_human"
 require_relative "raygatherer/commands/alert/status"
 require_relative "raygatherer/commands/recording/list"
+require_relative "raygatherer/commands/stats"
 
 module Raygatherer
   class Error < StandardError; end

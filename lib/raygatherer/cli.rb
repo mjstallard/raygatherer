@@ -46,6 +46,21 @@ module Raygatherer
 
       # Route to commands
       command = @argv.shift
+
+      if command == "stats"
+        require_relative "commands/stats"
+        return Commands::Stats.run(
+          @argv,
+          stdout: @stdout,
+          stderr: @stderr,
+          verbose: @verbose,
+          host: @host,
+          username: @username,
+          password: @password,
+          json: @json
+        )
+      end
+
       subcommand = @argv.shift
 
       if command == "alert" && subcommand == "status"
@@ -133,6 +148,7 @@ module Raygatherer
       output.puts "Commands:"
       output.puts "    alert status                     Check for active IMSI catcher alerts"
       output.puts "    recording list                   List recordings on the device"
+      output.puts "    stats                            Show device system stats"
       output.puts ""
       output.puts "Run 'raygatherer COMMAND --help' for more information on a command."
     end
