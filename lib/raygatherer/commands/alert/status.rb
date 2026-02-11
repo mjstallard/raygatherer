@@ -14,19 +14,22 @@ module Raygatherer
           "High" => 3
         }.freeze
 
-        def self.run(argv, stdout: $stdout, stderr: $stderr, verbose: false)
-          new(argv, stdout: stdout, stderr: stderr, verbose: verbose).run
+        def self.run(argv, stdout: $stdout, stderr: $stderr, verbose: false,
+                     host: nil, username: nil, password: nil, json: false)
+          new(argv, stdout: stdout, stderr: stderr, verbose: verbose,
+              host: host, username: username, password: password, json: json).run
         end
 
-        def initialize(argv, stdout: $stdout, stderr: $stderr, verbose: false)
+        def initialize(argv, stdout: $stdout, stderr: $stderr, verbose: false,
+                       host: nil, username: nil, password: nil, json: false)
           @argv = argv
           @stdout = stdout
           @stderr = stderr
           @verbose = verbose
-          @host = nil
-          @username = nil
-          @password = nil
-          @json = false
+          @host = host
+          @username = username
+          @password = password
+          @json = json
           @latest = false
         end
 
