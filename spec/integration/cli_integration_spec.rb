@@ -174,6 +174,43 @@ RSpec.describe "CLI Integration" do
     end
   end
 
+  describe "raygatherer recording list" do
+    it "requires --host flag" do
+      stdout, stderr, status = Open3.capture3(exe_path, "recording", "list")
+
+      expect(stderr).to include("--host is required")
+      expect(stderr).to include("Usage:")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "shows help with --help" do
+      stdout, stderr, status = Open3.capture3(exe_path, "recording", "list", "--help")
+
+      expect(stdout).to include("Usage:")
+      expect(stdout).to include("recording list")
+      expect(stdout).to include("--host")
+      expect(stderr).to be_empty
+      expect(status.exitstatus).to eq(0)
+    end
+
+    it "handles connection errors gracefully" do
+      stdout, stderr, status = Open3.capture3(exe_path, "recording", "list", "--host", "http://localhost:9999")
+
+      expect(stderr).to include("Error")
+      expect(stderr).to include("Failed to connect")
+      expect(status.exitstatus).to eq(1)
+    end
+  end
+
+  describe "raygatherer help includes recording list" do
+    it "shows recording list in help output" do
+      stdout, stderr, status = Open3.capture3(exe_path, "--help")
+
+      expect(stdout).to include("recording list")
+      expect(status.exitstatus).to eq(0)
+    end
+  end
+
   describe "raygatherer exit codes" do
     it "returns exit code 1 when --host is missing" do
       stdout, stderr, status = Open3.capture3(

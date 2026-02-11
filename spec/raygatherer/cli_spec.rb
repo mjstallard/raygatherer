@@ -122,6 +122,34 @@ RSpec.describe Raygatherer::CLI do
         expect(stderr.string).to include("Usage:")
         expect(exit_code).to eq(1)
       end
+
+      it "routes 'recording list' to Commands::Recording::List" do
+        allow(Raygatherer::Commands::Recording::List).to receive(:run).and_return(0)
+
+        exit_code = described_class.run(["recording", "list", "--host", "http://test"], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Recording::List).to have_received(:run).with(
+          ["--host", "http://test"],
+          stdout: stdout,
+          stderr: stderr,
+          verbose: false
+        )
+        expect(exit_code).to eq(0)
+      end
+
+      it "passes --verbose to recording list command" do
+        allow(Raygatherer::Commands::Recording::List).to receive(:run).and_return(0)
+
+        described_class.run(["--verbose", "recording", "list", "--host", "http://test"],
+                            stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Recording::List).to have_received(:run).with(
+          ["--host", "http://test"],
+          stdout: stdout,
+          stderr: stderr,
+          verbose: true
+        )
+      end
     end
 
     describe "--verbose flag" do

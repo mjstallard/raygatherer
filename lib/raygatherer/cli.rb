@@ -54,6 +54,16 @@ module Raygatherer
         )
       end
 
+      if command == "recording" && subcommand == "list"
+        require_relative "commands/recording/list"
+        return Commands::Recording::List.run(
+          @argv,
+          stdout: @stdout,
+          stderr: @stderr,
+          verbose: @verbose
+        )
+      end
+
       # Unknown command
       @stderr.puts "Unknown command: #{[command, subcommand].compact.join(' ')}"
       show_help(@stderr)
@@ -99,6 +109,7 @@ module Raygatherer
       output.puts ""
       output.puts "Commands:"
       output.puts "    alert status                     Check for active IMSI catcher alerts"
+      output.puts "    recording list                   List recordings on the device"
       output.puts ""
       output.puts "Run 'raygatherer COMMAND --help' for more information on a command."
     end
