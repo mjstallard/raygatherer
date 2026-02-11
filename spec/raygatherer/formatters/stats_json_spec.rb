@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../../lib/raygatherer/formatters/stats_json"
-
 RSpec.describe Raygatherer::Formatters::StatsJSON do
   describe "#format" do
     it "outputs valid JSON" do

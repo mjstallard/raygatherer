@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../../lib/raygatherer/commands/stats"
-
 RSpec.describe Raygatherer::Commands::Stats do
   describe ".run" do
     let(:stdout) { StringIO.new }

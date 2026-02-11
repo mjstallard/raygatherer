@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../../lib/raygatherer/formatters/stats_human"
-
 RSpec.describe Raygatherer::Formatters::StatsHuman do
   describe "#format" do
     let(:full_stats) do
