@@ -77,22 +77,6 @@ module Raygatherer
             opts.separator ""
             opts.separator "Options:"
 
-            opts.on("--host HOST", "Rayhunter host URL (required)") do |h|
-              @host = h
-            end
-
-            opts.on("--basic-auth-user USER", "Basic auth username") do |u|
-              @username = u
-            end
-
-            opts.on("--basic-auth-password PASS", "Basic auth password") do |p|
-              @password = p
-            end
-
-            opts.on("--json", "Output JSON instead of human-readable format") do
-              @json = true
-            end
-
             opts.on("--latest", "Show only alerts from the most recent message") do
               @latest = true
             end
@@ -140,15 +124,14 @@ module Raygatherer
         end
 
         def show_help(output = @stdout)
-          output.puts "Usage: raygatherer alert status [options]"
+          output.puts "Usage: raygatherer [global options] alert status [options]"
           output.puts ""
           output.puts "Options:"
-          output.puts "    --host HOST                      Rayhunter host URL (required)"
-          output.puts "    --basic-auth-user USER           Basic auth username"
-          output.puts "    --basic-auth-password PASS       Basic auth password"
-          output.puts "    --json                           Output JSON (for scripts/piping)"
           output.puts "    --latest                         Show only alerts from the most recent message"
           output.puts "    -h, --help                       Show this help message"
+          output.puts ""
+          output.puts "Global options (see 'raygatherer --help'):"
+          output.puts "    --host, --basic-auth-user, --basic-auth-password, --json, --verbose"
           output.puts ""
           output.puts "Exit Codes:"
           output.puts "    0   No alerts detected"
@@ -158,9 +141,9 @@ module Raygatherer
           output.puts "    12  High severity alert"
           output.puts ""
           output.puts "Examples:"
-          output.puts "  raygatherer alert status --host http://192.168.1.100:8080"
-          output.puts "  raygatherer alert status --host http://192.168.1.100:8080 --json | jq"
-          output.puts "  raygatherer alert status --host http://rayhunter --json"
+          output.puts "  raygatherer --host http://192.168.1.100:8080 alert status"
+          output.puts "  raygatherer --host http://192.168.1.100:8080 --json alert status"
+          output.puts "  raygatherer --host http://rayhunter --json alert status"
           output.puts "  [ $? -ge 11 ] && telegram-send 'Medium+ severity alert!'"
         end
 

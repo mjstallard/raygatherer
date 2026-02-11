@@ -66,22 +66,6 @@ module Raygatherer
             opts.separator ""
             opts.separator "Options:"
 
-            opts.on("--host HOST", "Rayhunter host URL (required)") do |h|
-              @host = h
-            end
-
-            opts.on("--basic-auth-user USER", "Basic auth username") do |u|
-              @username = u
-            end
-
-            opts.on("--basic-auth-password PASS", "Basic auth password") do |p|
-              @password = p
-            end
-
-            opts.on("--json", "Output JSON instead of human-readable format") do
-              @json = true
-            end
-
             opts.on("-h", "--help", "Show this help message") do
               show_help
               raise CLI::EarlyExit, 0
@@ -90,18 +74,17 @@ module Raygatherer
         end
 
         def show_help(output = @stdout)
-          output.puts "Usage: raygatherer recording list [options]"
+          output.puts "Usage: raygatherer [global options] recording list [options]"
           output.puts ""
           output.puts "Options:"
-          output.puts "    --host HOST                      Rayhunter host URL (required)"
-          output.puts "    --basic-auth-user USER           Basic auth username"
-          output.puts "    --basic-auth-password PASS       Basic auth password"
-          output.puts "    --json                           Output JSON (for scripts/piping)"
           output.puts "    -h, --help                       Show this help message"
           output.puts ""
+          output.puts "Global options (see 'raygatherer --help'):"
+          output.puts "    --host, --basic-auth-user, --basic-auth-password, --json, --verbose"
+          output.puts ""
           output.puts "Examples:"
-          output.puts "  raygatherer recording list --host http://192.168.1.100:8080"
-          output.puts "  raygatherer recording list --host http://192.168.1.100:8080 --json | jq"
+          output.puts "  raygatherer --host http://192.168.1.100:8080 recording list"
+          output.puts "  raygatherer --host http://192.168.1.100:8080 --json recording list"
         end
       end
     end
