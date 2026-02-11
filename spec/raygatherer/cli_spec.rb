@@ -71,24 +71,32 @@ RSpec.describe Raygatherer::CLI do
         exit_code = described_class.run(["alert", "status", "--host", "http://test"], stdout: stdout, stderr: stderr)
 
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
-          ["--host", "http://test"],
+          [],
           stdout: stdout,
           stderr: stderr,
-          verbose: false
+          verbose: false,
+          host: "http://test",
+          username: nil,
+          password: nil,
+          json: false
         )
         expect(exit_code).to eq(0)
       end
 
-      it "passes remaining argv to command" do
+      it "passes --json as keyword param to command" do
         allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
 
         described_class.run(["alert", "status", "--host", "http://test", "--json"], stdout: stdout, stderr: stderr)
 
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
-          ["--host", "http://test", "--json"],
+          [],
           stdout: stdout,
           stderr: stderr,
-          verbose: false
+          verbose: false,
+          host: "http://test",
+          username: nil,
+          password: nil,
+          json: true
         )
       end
 
@@ -129,10 +137,14 @@ RSpec.describe Raygatherer::CLI do
         exit_code = described_class.run(["recording", "list", "--host", "http://test"], stdout: stdout, stderr: stderr)
 
         expect(Raygatherer::Commands::Recording::List).to have_received(:run).with(
-          ["--host", "http://test"],
+          [],
           stdout: stdout,
           stderr: stderr,
-          verbose: false
+          verbose: false,
+          host: "http://test",
+          username: nil,
+          password: nil,
+          json: false
         )
         expect(exit_code).to eq(0)
       end
@@ -144,10 +156,14 @@ RSpec.describe Raygatherer::CLI do
                             stdout: stdout, stderr: stderr)
 
         expect(Raygatherer::Commands::Recording::List).to have_received(:run).with(
-          ["--host", "http://test"],
+          [],
           stdout: stdout,
           stderr: stderr,
-          verbose: true
+          verbose: true,
+          host: "http://test",
+          username: nil,
+          password: nil,
+          json: false
         )
       end
     end
@@ -160,10 +176,14 @@ RSpec.describe Raygatherer::CLI do
                             stdout: stdout, stderr: stderr)
 
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
-          ["--host", "http://test"],
+          [],
           stdout: stdout,
           stderr: stderr,
-          verbose: true
+          verbose: true,
+          host: "http://test",
+          username: nil,
+          password: nil,
+          json: false
         )
       end
 
@@ -174,10 +194,14 @@ RSpec.describe Raygatherer::CLI do
                             stdout: stdout, stderr: stderr)
 
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
-          ["--host", "http://test"],
+          [],
           stdout: stdout,
           stderr: stderr,
-          verbose: false
+          verbose: false,
+          host: "http://test",
+          username: nil,
+          password: nil,
+          json: false
         )
       end
 
@@ -189,10 +213,14 @@ RSpec.describe Raygatherer::CLI do
 
         # --verbose should be extracted, not passed to command
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
-          ["--host", "http://test"],
+          [],
           stdout: stdout,
           stderr: stderr,
-          verbose: true
+          verbose: true,
+          host: "http://test",
+          username: nil,
+          password: nil,
+          json: false
         )
       end
 
@@ -201,6 +229,90 @@ RSpec.describe Raygatherer::CLI do
 
         expect(stdout.string).to include("Usage:")
         expect(exit_code).to eq(0)
+      end
+    end
+
+    describe "global flag extraction" do
+      it "extracts --host and passes as keyword param" do
+        allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
+
+        described_class.run(["--host", "http://myhost", "alert", "status"],
+                            stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
+          [],
+          stdout: stdout,
+          stderr: stderr,
+          verbose: false,
+          host: "http://myhost",
+          username: nil,
+          password: nil,
+          json: false
+        )
+      end
+
+      it "extracts --basic-auth-user and --basic-auth-password" do
+        allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
+
+        described_class.run([
+          "alert", "status",
+          "--host", "http://test",
+          "--basic-auth-user", "admin",
+          "--basic-auth-password", "secret"
+        ], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
+          [],
+          stdout: stdout,
+          stderr: stderr,
+          verbose: false,
+          host: "http://test",
+          username: "admin",
+          password: "secret",
+          json: false
+        )
+      end
+
+      it "extracts --json and passes as keyword param" do
+        allow(Raygatherer::Commands::Recording::List).to receive(:run).and_return(0)
+
+        described_class.run(["--json", "recording", "list", "--host", "http://test"],
+                            stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Recording::List).to have_received(:run).with(
+          [],
+          stdout: stdout,
+          stderr: stderr,
+          verbose: false,
+          host: "http://test",
+          username: nil,
+          password: nil,
+          json: true
+        )
+      end
+
+      it "extracts all global flags together" do
+        allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
+
+        described_class.run([
+          "--verbose",
+          "--host", "http://myhost",
+          "--basic-auth-user", "user1",
+          "--basic-auth-password", "pass1",
+          "--json",
+          "alert", "status"
+        ], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
+          [],
+          stdout: stdout,
+          stderr: stderr,
+          verbose: true,
+          host: "http://myhost",
+          username: "user1",
+          password: "pass1",
+          json: true
+        )
       end
     end
   end

@@ -26,8 +26,12 @@ module Raygatherer
     end
 
     def run
-      # Extract --verbose BEFORE processing
+      # Extract global flags BEFORE processing
       @verbose = @argv.delete("--verbose") ? true : false
+      @json = @argv.delete("--json") ? true : false
+      @host = extract_value_flag("--host")
+      @username = extract_value_flag("--basic-auth-user")
+      @password = extract_value_flag("--basic-auth-password")
 
       if @argv.empty?
         show_help
@@ -50,7 +54,11 @@ module Raygatherer
           @argv,
           stdout: @stdout,
           stderr: @stderr,
-          verbose: @verbose
+          verbose: @verbose,
+          host: @host,
+          username: @username,
+          password: @password,
+          json: @json
         )
       end
 
@@ -60,7 +68,11 @@ module Raygatherer
           @argv,
           stdout: @stdout,
           stderr: @stderr,
-          verbose: @verbose
+          verbose: @verbose,
+          host: @host,
+          username: @username,
+          password: @password,
+          json: @json
         )
       end
 
@@ -99,6 +111,13 @@ module Raygatherer
       end.parse!(@argv)
     end
 
+    def extract_value_flag(flag)
+      index = @argv.index(flag)
+      return nil unless index
+      @argv.delete_at(index) # remove the flag
+      @argv.delete_at(index) # remove the value (shifted into same index)
+    end
+
     def show_help(output = @stdout)
       output.puts "Usage: raygatherer [options] [command]"
       output.puts ""
@@ -106,6 +125,10 @@ module Raygatherer
       output.puts "    -v, --version                    Show version"
       output.puts "    -h, --help                       Show this help message"
       output.puts "        --verbose                    Show detailed HTTP request/response information"
+      output.puts "        --host HOST                  Rayhunter host URL (required)"
+      output.puts "        --basic-auth-user USER       Basic auth username"
+      output.puts "        --basic-auth-password PASS   Basic auth password"
+      output.puts "        --json                       Output JSON (for scripts/piping)"
       output.puts ""
       output.puts "Commands:"
       output.puts "    alert status                     Check for active IMSI catcher alerts"
