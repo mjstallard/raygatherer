@@ -297,4 +297,106 @@ RSpec.describe Raygatherer::ApiClient do
       end
     end
   end
+
+  describe "#fetch_manifest" do
+    let(:manifest_response) do
+      {
+        "entries" => [
+          {
+            "name" => "1738950000",
+            "start_time" => "2025-02-07T13:40:00+00:00",
+            "last_message_time" => "2025-02-07T15:30:00+00:00",
+            "qmdl_size_bytes" => 134_963_200,
+            "rayhunter_version" => "0.4.0",
+            "system_os" => "Linux",
+            "arch" => "aarch64"
+          }
+        ],
+        "current_entry" => {
+          "name" => "1738956789",
+          "start_time" => "2025-02-07T15:33:09+00:00",
+          "last_message_time" => "2025-02-07T16:00:00+00:00",
+          "qmdl_size_bytes" => 47_513_600,
+          "rayhunter_version" => "0.4.0",
+          "system_os" => "Linux",
+          "arch" => "aarch64"
+        }
+      }
+    end
+
+    it "parses JSON response into a hash with entries and current_entry" do
+      stub_request(:get, "#{host}/api/qmdl-manifest")
+        .to_return(status: 200, body: ::JSON.generate(manifest_response))
+
+      result = client.fetch_manifest
+
+      expect(result).to have_key("entries")
+      expect(result).to have_key("current_entry")
+      expect(result["entries"]).to be_an(Array)
+      expect(result["entries"].length).to eq(1)
+      expect(result["entries"].first["name"]).to eq("1738950000")
+    end
+
+    it "returns current_entry when present" do
+      stub_request(:get, "#{host}/api/qmdl-manifest")
+        .to_return(status: 200, body: ::JSON.generate(manifest_response))
+
+      result = client.fetch_manifest
+
+      expect(result["current_entry"]).not_to be_nil
+      expect(result["current_entry"]["name"]).to eq("1738956789")
+    end
+
+    it "returns null current_entry when not recording" do
+      no_recording = { "entries" => manifest_response["entries"], "current_entry" => nil }
+      stub_request(:get, "#{host}/api/qmdl-manifest")
+        .to_return(status: 200, body: ::JSON.generate(no_recording))
+
+      result = client.fetch_manifest
+
+      expect(result["current_entry"]).to be_nil
+    end
+
+    it "handles HTTP errors" do
+      stub_request(:get, "#{host}/api/qmdl-manifest")
+        .to_return(status: 500, body: "Internal Server Error")
+
+      expect { client.fetch_manifest }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 500/
+      )
+    end
+
+    it "handles connection errors" do
+      stub_request(:get, "#{host}/api/qmdl-manifest")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.fetch_manifest }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+
+    it "handles malformed JSON" do
+      stub_request(:get, "#{host}/api/qmdl-manifest")
+        .to_return(status: 200, body: "not json")
+
+      expect { client.fetch_manifest }.to raise_error(
+        Raygatherer::ApiClient::ParseError,
+        /Failed to parse/
+      )
+    end
+
+    it "sends basic auth credentials when configured" do
+      auth_client = described_class.new(host, username: "user", password: "pass")
+
+      stub_request(:get, "#{host}/api/qmdl-manifest")
+        .with(basic_auth: ["user", "pass"])
+        .to_return(status: 200, body: ::JSON.generate(manifest_response))
+
+      result = auth_client.fetch_manifest
+
+      expect(result["entries"]).to be_an(Array)
+    end
+  end
 end

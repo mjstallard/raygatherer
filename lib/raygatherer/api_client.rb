@@ -54,6 +54,42 @@ module Raygatherer
       raise
     end
 
+    def fetch_manifest
+      options = {}
+      options[:basic_auth] = { username: @username, password: @password } if @username && @password
+
+      log_verbose "HTTP GET #{@host}/api/qmdl-manifest"
+      log_verbose "Basic Auth: user=#{@username}" if @username
+
+      start_time = Time.now
+      log_verbose "Request started at: #{start_time.utc}"
+
+      response = HTTParty.get("#{@host}/api/qmdl-manifest", options)
+
+      elapsed = Time.now - start_time
+      status_text = response.code == 200 ? "OK" : response.message.to_s
+      log_verbose "Response received: #{response.code} #{status_text} (#{format('%.3f', elapsed)}s)"
+
+      log_verbose "Raw response body (#{response.body.bytesize} bytes):"
+      log_verbose response.body if @verbose
+
+      unless response.success?
+        raise ApiError, "Server returned #{response.code}: #{response.message}"
+      end
+
+      log_verbose "Parsing JSON response..."
+      result = parse_json(response.body)
+      log_verbose "Parsed successfully: #{result['entries']&.length || 0} entries"
+
+      result
+    rescue SocketError, Errno::ECONNREFUSED, Net::OpenTimeout, Net::ReadTimeout => e
+      log_verbose "Connection error: #{e.class} - #{e.message}"
+      raise ConnectionError, "Failed to connect to #{@host}: #{e.message}"
+    rescue ParseError => e
+      log_verbose "Parse failed: #{e.message}"
+      raise
+    end
+
     private
 
     def log_verbose(message)
@@ -80,6 +116,12 @@ module Raygatherer
       JSON.parse(line)
     rescue JSON::ParserError => e
       raise ParseError, "Failed to parse #{context}: #{e.message}"
+    end
+
+    def parse_json(body)
+      JSON.parse(body)
+    rescue JSON::ParserError => e
+      raise ParseError, "Failed to parse response: #{e.message}"
     end
 
     def normalize_host(host)
