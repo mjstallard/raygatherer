@@ -49,14 +49,12 @@ module Raygatherer
 
       if command == "stats"
         require_relative "commands/stats"
+        return 1 unless require_host!
         return Commands::Stats.run(
           @argv,
           stdout: @stdout,
           stderr: @stderr,
-          verbose: @verbose,
-          host: @host,
-          username: @username,
-          password: @password,
+          api_client: build_api_client,
           json: @json
         )
       end
@@ -124,6 +122,20 @@ module Raygatherer
         opts.separator ""
         opts.separator "Commands will be added in future iterations."
       end.parse!(@argv)
+    end
+
+    def require_host!
+      return true if @host
+      return true if @argv.include?("--help") || @argv.include?("-h")
+      @stderr.puts "Error: --host is required"
+      show_help(@stderr)
+      false
+    end
+
+    def build_api_client
+      return nil unless @host
+      ApiClient.new(@host, username: @username, password: @password,
+                    verbose: @verbose, stderr: @stderr)
     end
 
     def extract_value_flag(flag)
