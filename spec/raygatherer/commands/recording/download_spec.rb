@@ -30,6 +30,16 @@ RSpec.describe Raygatherer::Commands::Recording::Download do
           expect(error.exit_code).to eq(0)
         end
       end
+
+      it "shows format flags in help" do
+        expect do
+          described_class.run(["--help"], stdout: stdout, stderr: stderr)
+        end.to raise_error(Raygatherer::CLI::EarlyExit)
+
+        expect(stdout.string).to include("--qmdl")
+        expect(stdout.string).to include("--pcap")
+        expect(stdout.string).to include("--zip")
+      end
     end
 
     describe "downloading a recording" do
@@ -102,6 +112,77 @@ RSpec.describe Raygatherer::Commands::Recording::Download do
         )
 
         expect(stderr.string).to include("Error: Failed to connect")
+        expect(exit_code).to eq(1)
+      end
+
+      it "downloads qmdl format with explicit --qmdl flag" do
+        allow(api_client).to receive(:download_recording) do |name, **kwargs|
+          expect(name).to eq("myrecording")
+          expect(kwargs[:format]).to eq(:qmdl)
+          kwargs[:io].write(binary_content)
+        end
+
+        exit_code = described_class.run(
+          ["myrecording", "--qmdl"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(File.exist?("myrecording.qmdl")).to be true
+        expect(stdout.string).to include("myrecording.qmdl")
+        expect(exit_code).to eq(0)
+      end
+
+      it "downloads pcap format with --pcap flag" do
+        allow(api_client).to receive(:download_recording) do |name, **kwargs|
+          expect(name).to eq("myrecording")
+          expect(kwargs[:format]).to eq(:pcap)
+          kwargs[:io].write(binary_content)
+        end
+
+        exit_code = described_class.run(
+          ["myrecording", "--pcap"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(File.exist?("myrecording.pcap")).to be true
+        expect(stdout.string).to include("myrecording.pcap")
+        expect(exit_code).to eq(0)
+      end
+
+      it "downloads zip format with --zip flag" do
+        allow(api_client).to receive(:download_recording) do |name, **kwargs|
+          expect(name).to eq("myrecording")
+          expect(kwargs[:format]).to eq(:zip)
+          kwargs[:io].write(binary_content)
+        end
+
+        exit_code = described_class.run(
+          ["myrecording", "--zip"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(File.exist?("myrecording.zip")).to be true
+        expect(stdout.string).to include("myrecording.zip")
+        expect(exit_code).to eq(0)
+      end
+
+      it "errors when multiple format flags are given" do
+        exit_code = described_class.run(
+          ["myrecording", "--pcap", "--zip"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stderr.string).to include("Error: only one format flag")
+        expect(exit_code).to eq(1)
+      end
+
+      it "errors when --qmdl and --pcap are both given" do
+        exit_code = described_class.run(
+          ["myrecording", "--qmdl", "--pcap"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stderr.string).to include("Error: only one format flag")
         expect(exit_code).to eq(1)
       end
 

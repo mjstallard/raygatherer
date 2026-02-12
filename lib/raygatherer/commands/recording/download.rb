@@ -21,13 +21,15 @@ module Raygatherer
           @stdout = stdout
           @stderr = stderr
           @api_client = api_client
-          @format = :qmdl
+          @format = nil
+          @format_flags = []
           @download_dir = nil
           @save_as = nil
         end
 
         def run
           parse_options
+          return 1 unless validate_format_flags
 
           name = @argv.shift
           unless name
@@ -66,11 +68,32 @@ module Raygatherer
             opts.separator ""
             opts.separator "Options:"
 
+            opts.on("--qmdl", "Download as qmdl format (default)") do
+              @format_flags << :qmdl
+            end
+
+            opts.on("--pcap", "Download as pcap format") do
+              @format_flags << :pcap
+            end
+
+            opts.on("--zip", "Download as zip format (qmdl + pcapng)") do
+              @format_flags << :zip
+            end
+
             opts.on("-h", "--help", "Show this help message") do
               show_help
               raise CLI::EarlyExit, 0
             end
           end.parse!(@argv)
+        end
+
+        def validate_format_flags
+          if @format_flags.length > 1
+            @stderr.puts "Error: only one format flag (--qmdl, --pcap, --zip) may be specified"
+            return false
+          end
+          @format = @format_flags.first || :qmdl
+          true
         end
 
         def resolve_destination(name)
@@ -105,6 +128,11 @@ module Raygatherer
           output.puts ""
           output.puts "Downloads a recording from the rayhunter device."
           output.puts ""
+          output.puts "Format (default: --qmdl):"
+          output.puts "        --qmdl                       Download as qmdl format (default)"
+          output.puts "        --pcap                       Download as pcap format"
+          output.puts "        --zip                        Download as zip format (qmdl + pcapng)"
+          output.puts ""
           output.puts "Options:"
           output.puts "    -h, --help                       Show this help message"
           output.puts ""
@@ -113,6 +141,8 @@ module Raygatherer
           output.puts ""
           output.puts "Examples:"
           output.puts "  raygatherer --host http://192.168.1.100:8080 recording download 1738950000"
+          output.puts "  raygatherer --host http://192.168.1.100:8080 recording download 1738950000 --pcap"
+          output.puts "  raygatherer --host http://192.168.1.100:8080 recording download 1738950000 --zip"
         end
       end
     end
