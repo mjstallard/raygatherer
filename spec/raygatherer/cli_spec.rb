@@ -174,6 +174,25 @@ RSpec.describe Raygatherer::CLI do
         )
       end
 
+      it "routes 'recording download' to Commands::Recording::Download" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Recording::Download).to receive(:run).and_return(0)
+
+        exit_code = described_class.run(
+          ["recording", "download", "myrecording", "--host", "http://test"],
+          stdout: stdout, stderr: stderr
+        )
+
+        expect(Raygatherer::Commands::Recording::Download).to have_received(:run).with(
+          ["myrecording"],
+          stdout: stdout,
+          stderr: stderr,
+          api_client: api_client
+        )
+        expect(exit_code).to eq(0)
+      end
+
       it "routes 'stats' to Commands::Stats" do
         api_client = instance_double(Raygatherer::ApiClient)
         allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)

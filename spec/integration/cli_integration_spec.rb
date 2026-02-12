@@ -202,6 +202,58 @@ RSpec.describe "CLI Integration" do
     end
   end
 
+  describe "raygatherer recording download" do
+    it "requires --host flag" do
+      stdout, stderr, status = Open3.capture3(exe_path, "recording", "download", "myrecording")
+
+      expect(stderr).to include("--host is required")
+      expect(stderr).to include("Usage:")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "shows help with --help" do
+      stdout, stderr, status = Open3.capture3(exe_path, "recording", "download", "--help")
+
+      expect(stdout).to include("Usage:")
+      expect(stdout).to include("recording download")
+      expect(stdout).to include("--qmdl")
+      expect(stdout).to include("--pcap")
+      expect(stdout).to include("--zip")
+      expect(stdout).to include("--download-dir")
+      expect(stdout).to include("--save-as")
+      expect(stderr).to be_empty
+      expect(status.exitstatus).to eq(0)
+    end
+
+    it "handles connection errors gracefully" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "recording", "download", "myrecording", "--host", "http://localhost:9999"
+      )
+
+      expect(stderr).to include("Error")
+      expect(stderr).to include("Failed to connect")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "requires a recording name argument" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "recording", "download", "--host", "http://localhost:9999"
+      )
+
+      expect(stderr).to include("recording name is required")
+      expect(status.exitstatus).to eq(1)
+    end
+  end
+
+  describe "raygatherer help includes recording download" do
+    it "shows recording download in help output" do
+      stdout, stderr, status = Open3.capture3(exe_path, "--help")
+
+      expect(stdout).to include("recording download")
+      expect(status.exitstatus).to eq(0)
+    end
+  end
+
   describe "raygatherer help includes recording list" do
     it "shows recording list in help output" do
       stdout, stderr, status = Open3.capture3(exe_path, "--help")
