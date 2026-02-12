@@ -11,6 +11,7 @@ require_relative "raygatherer/formatters/stats_json"
 require_relative "raygatherer/formatters/stats_human"
 require_relative "raygatherer/commands/alert/status"
 require_relative "raygatherer/commands/recording/list"
+require_relative "raygatherer/commands/recording/download"
 require_relative "raygatherer/commands/stats"
 
 module Raygatherer
