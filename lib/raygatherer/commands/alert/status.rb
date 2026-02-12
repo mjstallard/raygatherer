@@ -99,8 +99,7 @@ module Raygatherer
           output.puts "    --latest                         Show only alerts from the most recent message"
           output.puts "    -h, --help                       Show this help message"
           output.puts ""
-          output.puts "Global options (see 'raygatherer --help'):"
-          output.puts "    --host, --basic-auth-user, --basic-auth-password, --json, --verbose"
+          print_global_options(output, json: true)
           output.puts ""
           output.puts "Exit Codes:"
           output.puts "    0   No alerts detected"

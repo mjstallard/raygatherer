@@ -45,8 +45,7 @@ module Raygatherer
           output.puts "Options:"
           output.puts "    -h, --help                       Show this help message"
           output.puts ""
-          output.puts "Global options (see 'raygatherer --help'):"
-          output.puts "    --host, --basic-auth-user, --basic-auth-password, --verbose"
+          print_global_options(output)
           output.puts ""
           output.puts "Examples:"
           output.puts "  raygatherer --host http://192.168.1.100:8080 recording start"
