@@ -48,11 +48,11 @@ RSpec.describe "CLI Integration" do
     end
   end
 
-  describe "raygatherer alert status" do
+  describe "raygatherer alerts" do
     let(:host) { "http://localhost:8080" }
 
     it "requires --host flag" do
-      stdout, stderr, status = Open3.capture3(exe_path, "alert", "status")
+      stdout, stderr, status = Open3.capture3(exe_path, "alerts")
 
       expect(stderr).to include("--host is required")
       expect(stderr).to include("Usage:")
@@ -60,7 +60,7 @@ RSpec.describe "CLI Integration" do
     end
 
     it "shows help with --help" do
-      stdout, stderr, status = Open3.capture3(exe_path, "alert", "status", "--help")
+      stdout, stderr, status = Open3.capture3(exe_path, "alerts", "--help")
 
       expect(stdout).to include("Usage:")
       expect(stdout).to include("--host")
@@ -70,7 +70,7 @@ RSpec.describe "CLI Integration" do
 
     it "handles connection errors gracefully" do
       # This will fail to connect since no server is running
-      stdout, stderr, status = Open3.capture3(exe_path, "alert", "status", "--host", host)
+      stdout, stderr, status = Open3.capture3(exe_path, "alerts", "--host", host)
 
       expect(stderr).to include("Error")
       expect(stderr).to include("Failed to connect")
@@ -85,7 +85,7 @@ RSpec.describe "CLI Integration" do
   describe "raygatherer --verbose" do
     it "accepts --verbose flag before command" do
       stdout, stderr, status = Open3.capture3(
-        exe_path, "--verbose", "alert", "status", "--host", "http://localhost:9999"
+        exe_path, "--verbose", "alerts", "--host", "http://localhost:9999"
       )
 
       # Will fail to connect, but should show verbose output
@@ -95,7 +95,7 @@ RSpec.describe "CLI Integration" do
 
     it "accepts --verbose flag after command" do
       stdout, stderr, status = Open3.capture3(
-        exe_path, "alert", "status", "--verbose", "--host", "http://localhost:9999"
+        exe_path, "alerts", "--verbose", "--host", "http://localhost:9999"
       )
 
       expect(stderr).to include("HTTP GET")
@@ -104,7 +104,7 @@ RSpec.describe "CLI Integration" do
 
     it "does not output verbose logs without flag" do
       stdout, stderr, status = Open3.capture3(
-        exe_path, "alert", "status", "--host", "http://localhost:9999"
+        exe_path, "alerts", "--host", "http://localhost:9999"
       )
 
       expect(stderr).not_to include("HTTP GET")
@@ -115,7 +115,7 @@ RSpec.describe "CLI Integration" do
 
     it "verbose output goes to stderr, not stdout" do
       stdout, stderr, status = Open3.capture3(
-        exe_path, "--verbose", "alert", "status", "--host", "http://localhost:9999"
+        exe_path, "--verbose", "alerts", "--host", "http://localhost:9999"
       )
 
       expect(stdout).to be_empty # No verbose in stdout
@@ -127,7 +127,7 @@ RSpec.describe "CLI Integration" do
     it "outputs valid JSON when --json flag is used" do
       # This will fail to connect, but tests flag acceptance
       stdout, stderr, status = Open3.capture3(
-        exe_path, "alert", "status", "--host", "http://localhost:9999", "--json"
+        exe_path, "alerts", "--host", "http://localhost:9999", "--json"
       )
 
       expect(stdout).to be_empty  # Error case, no output to stdout
@@ -136,7 +136,7 @@ RSpec.describe "CLI Integration" do
 
     it "outputs human-readable format without --json (default)" do
       stdout, stderr, status = Open3.capture3(
-        exe_path, "alert", "status", "--host", "http://localhost:9999"
+        exe_path, "alerts", "--host", "http://localhost:9999"
       )
 
       expect(stderr).to include("Error")  # Human error message
@@ -145,7 +145,7 @@ RSpec.describe "CLI Integration" do
 
     it "works with --json and --verbose together" do
       stdout, stderr, status = Open3.capture3(
-        exe_path, "--verbose", "alert", "status", "--host", "http://localhost:9999", "--json"
+        exe_path, "--verbose", "alerts", "--host", "http://localhost:9999", "--json"
       )
 
       # Verbose logs to stderr
@@ -156,7 +156,7 @@ RSpec.describe "CLI Integration" do
 
     it "shows --json in help text" do
       stdout, stderr, status = Open3.capture3(
-        exe_path, "alert", "status", "--help"
+        exe_path, "alerts", "--help"
       )
 
       expect(stdout).to include("--json")
@@ -166,7 +166,7 @@ RSpec.describe "CLI Integration" do
 
     it "shows --latest in help text" do
       stdout, stderr, status = Open3.capture3(
-        exe_path, "alert", "status", "--help"
+        exe_path, "alerts", "--help"
       )
 
       expect(stdout).to include("--latest")
@@ -447,7 +447,7 @@ RSpec.describe "CLI Integration" do
   describe "raygatherer exit codes" do
     it "returns exit code 1 when --host is missing" do
       stdout, stderr, status = Open3.capture3(
-        exe_path, "alert", "status"
+        exe_path, "alerts"
       )
 
       expect(stderr).to include("--host is required")

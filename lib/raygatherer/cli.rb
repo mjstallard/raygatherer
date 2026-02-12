@@ -59,12 +59,10 @@ module Raygatherer
         )
       end
 
-      subcommand = @argv.shift
-
-      if command == "alert" && subcommand == "status"
-        require_relative "commands/alert/status"
+      if command == "alerts"
+        require_relative "commands/alerts"
         return 1 unless require_host!
-        return Commands::Alert::Status.run(
+        return Commands::Alerts.run(
           @argv,
           stdout: @stdout,
           stderr: @stderr,
@@ -72,6 +70,8 @@ module Raygatherer
           json: @json
         )
       end
+
+      subcommand = @argv.shift
 
       if command == "recording" && subcommand == "list"
         require_relative "commands/recording/list"
@@ -198,7 +198,7 @@ module Raygatherer
       output.puts "        --json                       Output JSON (for scripts/piping)"
       output.puts ""
       output.puts "Commands:"
-      output.puts "    alert status                     Check for active IMSI catcher alerts"
+      output.puts "    alerts                           Check for active IMSI catcher alerts"
       output.puts "    recording list                   List recordings on the device"
       output.puts "    recording download <name>        Download a recording from the device"
       output.puts "    recording delete <name>          Delete a recording from the device"

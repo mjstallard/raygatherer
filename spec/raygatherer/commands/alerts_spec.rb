@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Raygatherer::Commands::Alert::Status do
+RSpec.describe Raygatherer::Commands::Alerts do
   describe ".run" do
     let(:stdout) { StringIO.new }
     let(:stderr) { StringIO.new }
