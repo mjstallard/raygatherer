@@ -66,24 +66,28 @@ RSpec.describe Raygatherer::CLI do
 
     describe "command routing" do
       it "routes 'alert status' to Commands::Alert::Status" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
 
         exit_code = described_class.run(["alert", "status", "--host", "http://test"], stdout: stdout, stderr: stderr)
 
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://test", username: nil, password: nil, verbose: false, stderr: stderr
+        )
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
           [],
           stdout: stdout,
           stderr: stderr,
-          verbose: false,
-          host: "http://test",
-          username: nil,
-          password: nil,
+          api_client: api_client,
           json: false
         )
         expect(exit_code).to eq(0)
       end
 
       it "passes --json as keyword param to command" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
 
         described_class.run(["alert", "status", "--host", "http://test", "--json"], stdout: stdout, stderr: stderr)
@@ -92,15 +96,14 @@ RSpec.describe Raygatherer::CLI do
           [],
           stdout: stdout,
           stderr: stderr,
-          verbose: false,
-          host: "http://test",
-          username: nil,
-          password: nil,
+          api_client: api_client,
           json: true
         )
       end
 
       it "returns command exit code" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(42)
 
         exit_code = described_class.run(["alert", "status", "--host", "http://test"], stdout: stdout, stderr: stderr)
@@ -229,56 +232,55 @@ RSpec.describe Raygatherer::CLI do
 
     describe "--verbose flag" do
       it "extracts --verbose before command routing" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
 
         described_class.run(["--verbose", "alert", "status", "--host", "http://test"],
                             stdout: stdout, stderr: stderr)
 
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://test", username: nil, password: nil, verbose: true, stderr: stderr
+        )
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
           [],
           stdout: stdout,
           stderr: stderr,
-          verbose: true,
-          host: "http://test",
-          username: nil,
-          password: nil,
+          api_client: api_client,
           json: false
         )
       end
 
       it "passes verbose: false when flag not present" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
 
         described_class.run(["alert", "status", "--host", "http://test"],
                             stdout: stdout, stderr: stderr)
 
-        expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
-          [],
-          stdout: stdout,
-          stderr: stderr,
-          verbose: false,
-          host: "http://test",
-          username: nil,
-          password: nil,
-          json: false
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://test", username: nil, password: nil, verbose: false, stderr: stderr
         )
       end
 
       it "works with --verbose anywhere in global position" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
 
         described_class.run(["alert", "status", "--verbose", "--host", "http://test"],
                             stdout: stdout, stderr: stderr)
 
-        # --verbose should be extracted, not passed to command
+        # --verbose should be extracted and passed to ApiClient, not to command
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://test", username: nil, password: nil, verbose: true, stderr: stderr
+        )
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
           [],
           stdout: stdout,
           stderr: stderr,
-          verbose: true,
-          host: "http://test",
-          username: nil,
-          password: nil,
+          api_client: api_client,
           json: false
         )
       end
@@ -292,25 +294,29 @@ RSpec.describe Raygatherer::CLI do
     end
 
     describe "global flag extraction" do
-      it "extracts --host and passes as keyword param" do
+      it "extracts --host and passes to ApiClient" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
 
         described_class.run(["--host", "http://myhost", "alert", "status"],
                             stdout: stdout, stderr: stderr)
 
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://myhost", username: nil, password: nil, verbose: false, stderr: stderr
+        )
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
           [],
           stdout: stdout,
           stderr: stderr,
-          verbose: false,
-          host: "http://myhost",
-          username: nil,
-          password: nil,
+          api_client: api_client,
           json: false
         )
       end
 
       it "extracts --basic-auth-user and --basic-auth-password" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
 
         described_class.run([
@@ -320,15 +326,8 @@ RSpec.describe Raygatherer::CLI do
           "--basic-auth-password", "secret"
         ], stdout: stdout, stderr: stderr)
 
-        expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
-          [],
-          stdout: stdout,
-          stderr: stderr,
-          verbose: false,
-          host: "http://test",
-          username: "admin",
-          password: "secret",
-          json: false
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://test", username: "admin", password: "secret", verbose: false, stderr: stderr
         )
       end
 
@@ -350,6 +349,8 @@ RSpec.describe Raygatherer::CLI do
       end
 
       it "extracts all global flags together" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Alert::Status).to receive(:run).and_return(0)
 
         described_class.run([
@@ -361,14 +362,14 @@ RSpec.describe Raygatherer::CLI do
           "alert", "status"
         ], stdout: stdout, stderr: stderr)
 
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://myhost", username: "user1", password: "pass1", verbose: true, stderr: stderr
+        )
         expect(Raygatherer::Commands::Alert::Status).to have_received(:run).with(
           [],
           stdout: stdout,
           stderr: stderr,
-          verbose: true,
-          host: "http://myhost",
-          username: "user1",
-          password: "pass1",
+          api_client: api_client,
           json: true
         )
       end

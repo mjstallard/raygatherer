@@ -63,14 +63,12 @@ module Raygatherer
 
       if command == "alert" && subcommand == "status"
         require_relative "commands/alert/status"
+        return 1 unless require_host!
         return Commands::Alert::Status.run(
           @argv,
           stdout: @stdout,
           stderr: @stderr,
-          verbose: @verbose,
-          host: @host,
-          username: @username,
-          password: @password,
+          api_client: build_api_client,
           json: @json
         )
       end

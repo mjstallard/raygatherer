@@ -14,21 +14,15 @@ module Raygatherer
           "High" => 3
         }.freeze
 
-        def self.run(argv, stdout: $stdout, stderr: $stderr, verbose: false,
-                     host: nil, username: nil, password: nil, json: false)
-          new(argv, stdout: stdout, stderr: stderr, verbose: verbose,
-              host: host, username: username, password: password, json: json).run
+        def self.run(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
+          new(argv, stdout: stdout, stderr: stderr, api_client: api_client, json: json).run
         end
 
-        def initialize(argv, stdout: $stdout, stderr: $stderr, verbose: false,
-                       host: nil, username: nil, password: nil, json: false)
+        def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
           @argv = argv
           @stdout = stdout
           @stderr = stderr
-          @verbose = verbose
-          @host = host
-          @username = username
-          @password = password
+          @api_client = api_client
           @json = json
           @latest = false
         end
@@ -36,20 +30,7 @@ module Raygatherer
         def run
           parse_options
 
-          unless @host
-            @stderr.puts "Error: --host is required"
-            show_help(@stderr)
-            return 1
-          end
-
-          api_client = ApiClient.new(
-            @host,
-            username: @username,
-            password: @password,
-            verbose: @verbose,
-            stderr: @stderr
-          )
-          data = api_client.fetch_live_analysis_report
+          data = @api_client.fetch_live_analysis_report
           alerts = extract_alerts(data[:rows], data[:metadata])
           alerts = filter_latest(alerts, data[:rows]) if @latest
 

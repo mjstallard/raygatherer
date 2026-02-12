@@ -6,102 +6,6 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
     let(:stderr) { StringIO.new }
     let(:api_client) { instance_double(Raygatherer::ApiClient) }
 
-    before do
-      allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
-    end
-
-    describe "host param" do
-      it "requires host" do
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr)
-
-        expect(stderr.string).to include("--host is required")
-        expect(exit_code).to eq(1)
-      end
-
-      it "shows help when host is missing" do
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr)
-
-        expect(stderr.string).to include("Usage:")
-        expect(exit_code).to eq(1)
-      end
-    end
-
-    describe "basic auth params" do
-      it "passes username and password to ApiClient" do
-        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: {},
-          rows: []
-        })
-
-        described_class.run([],
-          stdout: stdout, stderr: stderr,
-          host: "http://test", username: "user", password: "pass")
-
-        expect(Raygatherer::ApiClient).to have_received(:new).with(
-          "http://test",
-          username: "user",
-          password: "pass",
-          verbose: false,
-          stderr: stderr
-        )
-      end
-
-      it "works without username and password" do
-        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: {},
-          rows: []
-        })
-
-        described_class.run([], stdout: stdout, stderr: stderr, host: "http://test")
-
-        expect(Raygatherer::ApiClient).to have_received(:new).with(
-          "http://test",
-          username: nil,
-          password: nil,
-          verbose: false,
-          stderr: stderr
-        )
-      end
-    end
-
-    describe "verbose flag" do
-      it "accepts verbose parameter and passes to ApiClient" do
-        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: {},
-          rows: []
-        })
-
-        described_class.run([],
-          stdout: stdout, stderr: stderr,
-          verbose: true, host: "http://test")
-
-        expect(Raygatherer::ApiClient).to have_received(:new).with(
-          "http://test",
-          username: nil,
-          password: nil,
-          verbose: true,
-          stderr: stderr
-        )
-      end
-
-      it "defaults verbose to false" do
-        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: {},
-          rows: []
-        })
-
-        described_class.run([], stdout: stdout, stderr: stderr, host: "http://test")
-
-        expect(Raygatherer::ApiClient).to have_received(:new).with(
-          "http://test",
-          username: nil,
-          password: nil,
-          verbose: false,
-          stderr: stderr
-        )
-      end
-    end
-
     describe "--help flag" do
       it "shows help with --help" do
         expect do
@@ -122,25 +26,6 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
     end
 
     describe "fetching and displaying alerts" do
-      let(:host) { "http://localhost:8080" }
-
-      it "fetches data from API client with correct host" do
-        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: {},
-          rows: []
-        })
-
-        described_class.run([], stdout: stdout, stderr: stderr, host: host)
-
-        expect(Raygatherer::ApiClient).to have_received(:new).with(
-          host,
-          username: nil,
-          password: nil,
-          verbose: false,
-          stderr: stderr
-        )
-      end
-
       it "outputs no alerts message when no events found" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
           metadata: {},
@@ -150,7 +35,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stdout.string).to include("No alerts detected")
         expect(exit_code).to eq(0)
@@ -164,7 +49,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stdout.string).to include("No alerts detected")
         expect(exit_code).to eq(0)
@@ -178,7 +63,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stdout.string).to include("Low severity alert detected")
         expect(stdout.string).to include("Low severity issue")
@@ -194,7 +79,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stdout.string).to include("Medium severity alert detected")
         expect(stdout.string).to include("Connection redirect")
@@ -209,7 +94,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stdout.string).to include("High severity alert detected")
         expect(stdout.string).to include("Critical threat")
@@ -226,7 +111,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stdout.string).to include("Low issue")
         expect(stdout.string).to include("High issue")
@@ -249,7 +134,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stdout.string).to include("Low issue")
         expect(stdout.string).to include("Medium issue")
@@ -258,8 +143,6 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
     end
 
     describe "--latest flag" do
-      let(:host) { "http://localhost:8080" }
-
       it "shows only alerts from the most recent packet_timestamp" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
           metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
@@ -270,7 +153,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run(["--latest"], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run(["--latest"], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stdout.string).to include("Latest low alert")
         expect(stdout.string).not_to include("Old high alert")
@@ -287,7 +170,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run(["--latest"], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run(["--latest"], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(exit_code).to eq(10)
       end
@@ -301,7 +184,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run(["--latest"], stdout: stdout, stderr: stderr, host: host, json: true)
+        exit_code = described_class.run(["--latest"], stdout: stdout, stderr: stderr, api_client: api_client, json: true)
 
         parsed = ::JSON.parse(stdout.string.strip)
         expect(parsed).to be_an(Array)
@@ -319,7 +202,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run(["--latest"], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run(["--latest"], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stdout.string).to include("No alerts detected")
         expect(exit_code).to eq(0)
@@ -327,8 +210,6 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
     end
 
     describe "edge cases" do
-      let(:host) { "http://localhost:8080" }
-
       it "handles missing analyzer name gracefully" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
           metadata: { "analyzers" => [nil] },
@@ -337,7 +218,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stdout.string).to include("Alert without analyzer")
         expect(stdout.string).not_to include("Analyzer:")
@@ -352,7 +233,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           ]
         })
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stdout.string).to include("Alert no metadata")
         expect(exit_code).to eq(10)
@@ -360,14 +241,12 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
     end
 
     describe "error handling" do
-      let(:host) { "http://localhost:8080" }
-
       it "handles API errors gracefully" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_raise(
           Raygatherer::ApiClient::ApiError, "Server error"
         )
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stderr.string).to include("Error: Server error")
         expect(exit_code).to eq(1)
@@ -378,7 +257,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           Raygatherer::ApiClient::ConnectionError, "Connection failed"
         )
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stderr.string).to include("Error: Connection failed")
         expect(exit_code).to eq(1)
@@ -389,7 +268,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
           Raygatherer::ApiClient::ParseError, "Invalid JSON"
         )
 
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
         expect(stderr.string).to include("Error: Invalid JSON")
         expect(exit_code).to eq(1)
@@ -401,11 +280,6 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
     let(:stdout) { StringIO.new }
     let(:stderr) { StringIO.new }
     let(:api_client) { instance_double(Raygatherer::ApiClient) }
-    let(:host) { "http://localhost:8080" }
-
-    before do
-      allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
-    end
 
     it "accepts json param" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
@@ -415,7 +289,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
       exit_code = described_class.run([],
         stdout: stdout, stderr: stderr,
-        host: host, json: true)
+        api_client: api_client, json: true)
 
       expect(exit_code).to eq(0)
     end
@@ -428,7 +302,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
       described_class.run([],
         stdout: stdout, stderr: stderr,
-        host: host, json: true)
+        api_client: api_client, json: true)
 
       output = stdout.string.strip
       expect { ::JSON.parse(output) }.not_to raise_error
@@ -450,29 +324,12 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
       described_class.run([],
         stdout: stdout, stderr: stderr,
-        host: host)
+        api_client: api_client)
 
       # Output should be human-readable (has color codes and emoji)
       output = stdout.string
       expect(output).to include("\u2713")
       expect(output).to include("No alerts detected")
-    end
-
-    it "json and verbose work together (JSON to stdout, verbose to stderr)" do
-      allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: {},
-        rows: []
-      })
-
-      described_class.run([],
-        stdout: stdout, stderr: stderr,
-        host: host, json: true, verbose: true)
-
-      # JSON should go to stdout
-      output = stdout.string.strip
-      expect { ::JSON.parse(output) }.not_to raise_error
-
-      # Verbose logs should go to stderr (tested in ApiClient specs)
     end
 
     it "JSON output goes to stdout (no colors, no emojis)" do
@@ -483,7 +340,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
 
       described_class.run([],
         stdout: stdout, stderr: stderr,
-        host: host, json: true)
+        api_client: api_client, json: true)
 
       output = stdout.string.strip
 
@@ -505,11 +362,6 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
     let(:stdout) { StringIO.new }
     let(:stderr) { StringIO.new }
     let(:api_client) { instance_double(Raygatherer::ApiClient) }
-    let(:host) { "http://localhost:8080" }
-
-    before do
-      allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
-    end
 
     it "returns 0 when no alerts" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
@@ -517,7 +369,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil] }]
       })
 
-      exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+      exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
       expect(exit_code).to eq(0)
     end
@@ -528,7 +380,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Low", "message" => "Low issue" }] }]
       })
 
-      exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+      exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
       expect(exit_code).to eq(10)
     end
@@ -539,7 +391,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Medium", "message" => "Medium issue" }] }]
       })
 
-      exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+      exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
       expect(exit_code).to eq(11)
     end
@@ -550,7 +402,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "High issue" }] }]
       })
 
-      exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+      exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
       expect(exit_code).to eq(12)
     end
@@ -560,7 +412,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         Raygatherer::ApiClient::ConnectionError, "Connection failed"
       )
 
-      exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
+      exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
       expect(exit_code).to eq(1)
     end
@@ -570,13 +422,7 @@ RSpec.describe Raygatherer::Commands::Alert::Status do
         Raygatherer::ApiClient::ParseError, "Invalid JSON"
       )
 
-      exit_code = described_class.run([], stdout: stdout, stderr: stderr, host: host)
-
-      expect(exit_code).to eq(1)
-    end
-
-    it "returns 1 for other errors (missing host)" do
-      exit_code = described_class.run([], stdout: stdout, stderr: stderr)
+      exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
 
       expect(exit_code).to eq(1)
     end
