@@ -1,42 +1,30 @@
 # frozen_string_literal: true
 
 require "optparse"
+require_relative "../base"
 require_relative "../../formatters/recording_list_json"
 require_relative "../../formatters/recording_list_human"
 
 module Raygatherer
   module Commands
     module Recording
-      class List
-        def self.run(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
-          new(argv, stdout: stdout, stderr: stderr, api_client: api_client, json: json).run
-        end
-
+      class List < Base
         def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
-          @argv = argv
-          @stdout = stdout
-          @stderr = stderr
-          @api_client = api_client
+          super(argv, stdout: stdout, stderr: stderr, api_client: api_client)
           @json = json
         end
 
         def run
-          parse_options
+          with_error_handling(extra_errors: [ApiClient::ParseError]) do
+            parse_options
 
-          manifest = @api_client.fetch_manifest
+            manifest = @api_client.fetch_manifest
 
-          formatter = @json ? Formatters::RecordingListJSON.new : Formatters::RecordingListHuman.new
-          @stdout.puts formatter.format(manifest)
+            formatter = @json ? Formatters::RecordingListJSON.new : Formatters::RecordingListHuman.new
+            @stdout.puts formatter.format(manifest)
 
-          0
-        rescue CLI::EarlyExit
-          raise
-        rescue ApiClient::ConnectionError, ApiClient::ApiError, ApiClient::ParseError => e
-          @stderr.puts "Error: #{e.message}"
-          1
-        rescue => e
-          @stderr.puts "Error: #{e.message}"
-          1
+            0
+          end
         end
 
         private

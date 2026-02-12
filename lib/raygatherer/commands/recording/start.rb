@@ -1,41 +1,25 @@
 # frozen_string_literal: true
 
 require "optparse"
+require_relative "../base"
 
 module Raygatherer
   module Commands
     module Recording
-      class Start
-        def self.run(argv, stdout: $stdout, stderr: $stderr, api_client: nil)
-          new(argv, stdout: stdout, stderr: stderr, api_client: api_client).run
-        end
-
-        def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil)
-          @argv = argv
-          @stdout = stdout
-          @stderr = stderr
-          @api_client = api_client
-        end
-
+      class Start < Base
         def run
-          parse_options
+          with_error_handling do
+            parse_options
 
-          if @argv.any?
-            @stderr.puts "Error: recording start does not take a name"
-            return 1
+            if @argv.any?
+              @stderr.puts "Error: recording start does not take a name"
+              next 1
+            end
+
+            @api_client.start_recording
+            @stdout.puts "Recording started"
+            0
           end
-
-          @api_client.start_recording
-          @stdout.puts "Recording started"
-          0
-        rescue CLI::EarlyExit
-          raise
-        rescue ApiClient::ConnectionError, ApiClient::ApiError => e
-          @stderr.puts "Error: #{e.message}"
-          1
-        rescue => e
-          @stderr.puts "Error: #{e.message}"
-          1
         end
 
         private

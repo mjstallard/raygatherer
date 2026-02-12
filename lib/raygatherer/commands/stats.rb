@@ -1,41 +1,29 @@
 # frozen_string_literal: true
 
 require "optparse"
+require_relative "base"
 require_relative "../formatters/stats_json"
 require_relative "../formatters/stats_human"
 
 module Raygatherer
   module Commands
-    class Stats
-      def self.run(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
-        new(argv, stdout: stdout, stderr: stderr, api_client: api_client, json: json).run
-      end
-
+    class Stats < Base
       def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
-        @argv = argv
-        @stdout = stdout
-        @stderr = stderr
-        @api_client = api_client
+        super(argv, stdout: stdout, stderr: stderr, api_client: api_client)
         @json = json
       end
 
       def run
-        parse_options
+        with_error_handling(extra_errors: [ApiClient::ParseError]) do
+          parse_options
 
-        stats = @api_client.fetch_system_stats
+          stats = @api_client.fetch_system_stats
 
-        formatter = @json ? Formatters::StatsJSON.new : Formatters::StatsHuman.new
-        @stdout.puts formatter.format(stats)
+          formatter = @json ? Formatters::StatsJSON.new : Formatters::StatsHuman.new
+          @stdout.puts formatter.format(stats)
 
-        0
-      rescue CLI::EarlyExit
-        raise
-      rescue ApiClient::ConnectionError, ApiClient::ApiError, ApiClient::ParseError => e
-        @stderr.puts "Error: #{e.message}"
-        1
-      rescue => e
-        @stderr.puts "Error: #{e.message}"
-        1
+          0
+        end
       end
 
       private

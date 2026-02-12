@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 require "optparse"
+require_relative "../base"
 require_relative "../../formatters/json"
 
 module Raygatherer
   module Commands
     module Alert
-      class Status
+      class Status < Base
         SEVERITY_ORDER = {
           "Informational" => 0,
           "Low" => 1,
@@ -14,40 +15,27 @@ module Raygatherer
           "High" => 3
         }.freeze
 
-        def self.run(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
-          new(argv, stdout: stdout, stderr: stderr, api_client: api_client, json: json).run
-        end
-
         def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
-          @argv = argv
-          @stdout = stdout
-          @stderr = stderr
-          @api_client = api_client
+          super(argv, stdout: stdout, stderr: stderr, api_client: api_client)
           @json = json
           @latest = false
         end
 
         def run
-          parse_options
+          with_error_handling(extra_errors: [ApiClient::ParseError]) do
+            parse_options
 
-          data = @api_client.fetch_live_analysis_report
-          alerts = extract_alerts(data[:rows], data[:metadata])
-          alerts = filter_latest(alerts, data[:rows]) if @latest
+            data = @api_client.fetch_live_analysis_report
+            alerts = extract_alerts(data[:rows], data[:metadata])
+            alerts = filter_latest(alerts, data[:rows]) if @latest
 
-          # Select formatter based on --json flag
-          formatter = @json ? Formatters::JSON.new : Formatters::Human.new
-          @stdout.puts formatter.format(alerts)
+            # Select formatter based on --json flag
+            formatter = @json ? Formatters::JSON.new : Formatters::Human.new
+            @stdout.puts formatter.format(alerts)
 
-          # Return severity-based exit code
-          severity_exit_code(alerts)
-        rescue CLI::EarlyExit
-          raise
-        rescue ApiClient::ConnectionError, ApiClient::ApiError, ApiClient::ParseError => e
-          @stderr.puts "Error: #{e.message}"
-          1  # Generic error
-        rescue => e
-          @stderr.puts "Error: #{e.message}"
-          1  # Generic error
+            # Return severity-based exit code
+            severity_exit_code(alerts)
+          end
         end
 
         private
