@@ -122,6 +122,7 @@ module Raygatherer
         output.puts "Usage: raygatherer [global options] alerts [options]"
         output.puts ""
         output.puts "Options:"
+        output.puts "    --after TIMESTAMP                Show only alerts after this time (ISO 8601, exclusive)"
         output.puts "    --latest                         Show only alerts from the most recent message"
         output.puts "    -h, --help                       Show this help message"
         output.puts ""
@@ -138,6 +139,7 @@ module Raygatherer
         output.puts "  raygatherer --host http://192.168.1.100:8080 alerts"
         output.puts "  raygatherer --host http://192.168.1.100:8080 --json alerts"
         output.puts "  raygatherer --host http://rayhunter --json alerts"
+        output.puts "  raygatherer --host http://rayhunter alerts --after 2024-02-07T14:25:33Z"
         output.puts "  [ $? -ge 11 ] && telegram-send 'Medium+ severity alert!'"
       end
 

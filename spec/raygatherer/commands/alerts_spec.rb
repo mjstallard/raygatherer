@@ -23,6 +23,14 @@ RSpec.describe Raygatherer::Commands::Alerts do
           expect(error.exit_code).to eq(0)
         end
       end
+
+      it "shows --after in help text" do
+        expect do
+          described_class.run(["--help"], stdout: stdout, stderr: stderr)
+        end.to raise_error(Raygatherer::CLI::EarlyExit)
+
+        expect(stdout.string).to include("--after")
+      end
     end
 
     describe "fetching and displaying alerts" do

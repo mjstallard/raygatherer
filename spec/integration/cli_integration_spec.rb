@@ -172,6 +172,15 @@ RSpec.describe "CLI Integration" do
       expect(stdout).to include("--latest")
       expect(status.exitstatus).to eq(0)
     end
+
+    it "shows --after in help text" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "alerts", "--help"
+      )
+
+      expect(stdout).to include("--after")
+      expect(status.exitstatus).to eq(0)
+    end
   end
 
   describe "raygatherer recording list" do
