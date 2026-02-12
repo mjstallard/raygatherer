@@ -107,6 +107,17 @@ module Raygatherer
         )
       end
 
+      if command == "recording" && subcommand == "stop"
+        require_relative "commands/recording/stop"
+        return 1 unless require_host!
+        return Commands::Recording::Stop.run(
+          @argv,
+          stdout: @stdout,
+          stderr: @stderr,
+          api_client: build_api_client
+        )
+      end
+
       # Unknown command
       @stderr.puts "Unknown command: #{[command, subcommand].compact.join(' ')}"
       show_help(@stderr)
@@ -180,6 +191,7 @@ module Raygatherer
       output.puts "    recording list                   List recordings on the device"
       output.puts "    recording download <name>        Download a recording from the device"
       output.puts "    recording delete <name>          Delete a recording from the device"
+      output.puts "    recording stop                   Stop the current recording"
       output.puts "    stats                            Show device system stats"
       output.puts ""
       output.puts "Run 'raygatherer COMMAND --help' for more information on a command."
