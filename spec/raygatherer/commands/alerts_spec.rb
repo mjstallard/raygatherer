@@ -231,6 +231,49 @@ RSpec.describe Raygatherer::Commands::Alerts do
         expect(exit_code).to eq(12)
       end
 
+      it "composes with --latest to show only the latest alert after the timestamp" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          rows: [
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Before cutoff" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "After cutoff early" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:36Z", "events" => [nil, { "event_type" => "Medium", "message" => "After cutoff latest" }] }
+          ]
+        })
+
+        exit_code = described_class.run(
+          ["--after", "2024-02-07T14:25:33Z", "--latest"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stdout.string).to include("After cutoff latest")
+        expect(stdout.string).not_to include("Before cutoff")
+        expect(stdout.string).not_to include("After cutoff early")
+        expect(exit_code).to eq(11)
+      end
+
+      it "--after --latest picks latest from filtered alerts, not all rows" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          rows: [
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old alert" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "New alert" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:36Z", "events" => [nil, { "event_type" => "Informational", "message" => "Info only" }] }
+          ]
+        })
+
+        exit_code = described_class.run(
+          ["--after", "2024-02-07T14:25:33Z", "--latest"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        # --after filters to only the :34Z alert (excluding :32Z and :36Z informational)
+        # --latest should pick from the filtered alerts, showing the :34Z alert
+        expect(stdout.string).to include("New alert")
+        expect(stdout.string).not_to include("Old alert")
+        expect(exit_code).to eq(10)
+      end
+
       it "returns error for invalid timestamp" do
         exit_code = described_class.run(
           ["--after", "not-a-timestamp"],
