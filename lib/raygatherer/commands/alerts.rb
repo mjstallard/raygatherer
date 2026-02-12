@@ -29,10 +29,7 @@ module Raygatherer
           data = @api_client.fetch_live_analysis_report
           alerts = extract_alerts(data[:rows], data[:metadata])
           alerts = filter_after(alerts) if @after
-          if @latest
-            latest_timestamp = @after ? latest_alert_timestamp(alerts) : latest_row_timestamp(data[:rows])
-            alerts = filter_latest(alerts, latest_timestamp)
-          end
+          alerts = filter_latest(alerts, data[:rows]) if @latest
 
           # Select formatter based on --json flag
           formatter = @json ? Formatters::JSON.new : Formatters::Human.new
@@ -104,15 +101,12 @@ module Raygatherer
         alerts.select { |a| Time.parse(a[:packet_timestamp]) > @after }
       end
 
-      def latest_row_timestamp(rows)
-        rows.map { |r| r["packet_timestamp"] }.max
-      end
-
-      def latest_alert_timestamp(alerts)
-        alerts.map { |a| a[:packet_timestamp] }.max
-      end
-
-      def filter_latest(alerts, latest_timestamp)
+      def filter_latest(alerts, rows)
+        latest_timestamp = if @after
+          alerts.map { |a| a[:packet_timestamp] }.max
+        else
+          rows.map { |r| r["packet_timestamp"] }.max
+        end
         return [] if latest_timestamp.nil?
 
         alerts.select { |a| a[:packet_timestamp] == latest_timestamp }
