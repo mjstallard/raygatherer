@@ -40,6 +40,15 @@ RSpec.describe Raygatherer::Commands::Recording::Download do
         expect(stdout.string).to include("--pcap")
         expect(stdout.string).to include("--zip")
       end
+
+      it "shows path flags in help" do
+        expect do
+          described_class.run(["--help"], stdout: stdout, stderr: stderr)
+        end.to raise_error(Raygatherer::CLI::EarlyExit)
+
+        expect(stdout.string).to include("--download-dir")
+        expect(stdout.string).to include("--save-as")
+      end
     end
 
     describe "downloading a recording" do
@@ -183,6 +192,89 @@ RSpec.describe Raygatherer::Commands::Recording::Download do
         )
 
         expect(stderr.string).to include("Error: only one format flag")
+        expect(exit_code).to eq(1)
+      end
+
+      it "saves to specified directory with --download-dir" do
+        allow(api_client).to receive(:download_recording) do |_name, **kwargs|
+          kwargs[:io].write(binary_content)
+        end
+
+        subdir = File.join(tmpdir, "downloads")
+        Dir.mkdir(subdir)
+
+        exit_code = described_class.run(
+          ["myrecording", "--download-dir", subdir],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expected_path = File.join(subdir, "myrecording.qmdl")
+        expect(File.exist?(expected_path)).to be true
+        expect(stdout.string).to include(expected_path)
+        expect(exit_code).to eq(0)
+      end
+
+      it "errors when --download-dir directory does not exist" do
+        exit_code = described_class.run(
+          ["myrecording", "--download-dir", "/nonexistent/path"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stderr.string).to include("Error: directory does not exist")
+        expect(exit_code).to eq(1)
+      end
+
+      it "saves to exact path with --save-as" do
+        allow(api_client).to receive(:download_recording) do |_name, **kwargs|
+          kwargs[:io].write(binary_content)
+        end
+
+        save_path = File.join(tmpdir, "custom_name.qmdl")
+
+        exit_code = described_class.run(
+          ["myrecording", "--save-as", save_path],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(File.exist?(save_path)).to be true
+        expect(stdout.string).to include(save_path)
+        expect(exit_code).to eq(0)
+      end
+
+      it "errors when --save-as parent directory does not exist" do
+        exit_code = described_class.run(
+          ["myrecording", "--save-as", "/nonexistent/path/file.qmdl"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stderr.string).to include("Error: directory does not exist")
+        expect(exit_code).to eq(1)
+      end
+
+      it "errors when both --download-dir and --save-as are given" do
+        exit_code = described_class.run(
+          ["myrecording", "--download-dir", tmpdir, "--save-as", File.join(tmpdir, "file.qmdl")],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stderr.string).to include("Error: --download-dir and --save-as are mutually exclusive")
+        expect(exit_code).to eq(1)
+      end
+
+      it "handles file permission errors gracefully" do
+        allow(api_client).to receive(:download_recording)
+
+        readonly_dir = File.join(tmpdir, "readonly")
+        Dir.mkdir(readonly_dir)
+        File.chmod(0o555, readonly_dir)
+
+        exit_code = described_class.run(
+          ["myrecording", "--download-dir", readonly_dir],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stderr.string).to include("Error:")
+        expect(stderr.string).to include("Permission denied")
         expect(exit_code).to eq(1)
       end
 

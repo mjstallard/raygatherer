@@ -30,6 +30,7 @@ module Raygatherer
         def run
           parse_options
           return 1 unless validate_format_flags
+          return 1 unless validate_path_flags
 
           name = @argv.shift
           unless name
@@ -80,6 +81,14 @@ module Raygatherer
               @format_flags << :zip
             end
 
+            opts.on("--download-dir DIR", "Save to specified directory") do |dir|
+              @download_dir = dir
+            end
+
+            opts.on("--save-as PATH", "Save to exact file path") do |path|
+              @save_as = path
+            end
+
             opts.on("-h", "--help", "Show this help message") do
               show_help
               raise CLI::EarlyExit, 0
@@ -96,7 +105,25 @@ module Raygatherer
           true
         end
 
+        def validate_path_flags
+          if @download_dir && @save_as
+            @stderr.puts "Error: --download-dir and --save-as are mutually exclusive"
+            return false
+          end
+          if @download_dir && !Dir.exist?(@download_dir)
+            @stderr.puts "Error: directory does not exist: #{@download_dir}"
+            return false
+          end
+          if @save_as && !Dir.exist?(File.dirname(@save_as))
+            @stderr.puts "Error: directory does not exist: #{File.dirname(@save_as)}"
+            return false
+          end
+          true
+        end
+
         def resolve_destination(name)
+          return @save_as if @save_as
+
           ext = EXTENSIONS[@format]
           dir = @download_dir || "."
           File.join(dir, "#{name}#{ext}")
@@ -133,6 +160,10 @@ module Raygatherer
           output.puts "        --pcap                       Download as pcap format"
           output.puts "        --zip                        Download as zip format (qmdl + pcapng)"
           output.puts ""
+          output.puts "Destination:"
+          output.puts "        --download-dir DIR            Save to specified directory (default: .)"
+          output.puts "        --save-as PATH               Save to exact file path"
+          output.puts ""
           output.puts "Options:"
           output.puts "    -h, --help                       Show this help message"
           output.puts ""
@@ -142,7 +173,8 @@ module Raygatherer
           output.puts "Examples:"
           output.puts "  raygatherer --host http://192.168.1.100:8080 recording download 1738950000"
           output.puts "  raygatherer --host http://192.168.1.100:8080 recording download 1738950000 --pcap"
-          output.puts "  raygatherer --host http://192.168.1.100:8080 recording download 1738950000 --zip"
+          output.puts "  raygatherer --host http://192.168.1.100:8080 recording download 1738950000 --download-dir /tmp"
+          output.puts "  raygatherer --host http://192.168.1.100:8080 recording download 1738950000 --save-as my.qmdl"
         end
       end
     end
