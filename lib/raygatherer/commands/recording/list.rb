@@ -8,41 +8,22 @@ module Raygatherer
   module Commands
     module Recording
       class List
-        def self.run(argv, stdout: $stdout, stderr: $stderr, verbose: false,
-                     host: nil, username: nil, password: nil, json: false)
-          new(argv, stdout: stdout, stderr: stderr, verbose: verbose,
-              host: host, username: username, password: password, json: json).run
+        def self.run(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
+          new(argv, stdout: stdout, stderr: stderr, api_client: api_client, json: json).run
         end
 
-        def initialize(argv, stdout: $stdout, stderr: $stderr, verbose: false,
-                       host: nil, username: nil, password: nil, json: false)
+        def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
           @argv = argv
           @stdout = stdout
           @stderr = stderr
-          @verbose = verbose
-          @host = host
-          @username = username
-          @password = password
+          @api_client = api_client
           @json = json
         end
 
         def run
           parse_options
 
-          unless @host
-            @stderr.puts "Error: --host is required"
-            show_help(@stderr)
-            return 1
-          end
-
-          api_client = ApiClient.new(
-            @host,
-            username: @username,
-            password: @password,
-            verbose: @verbose,
-            stderr: @stderr
-          )
-          manifest = api_client.fetch_manifest
+          manifest = @api_client.fetch_manifest
 
           formatter = @json ? Formatters::RecordingListJSON.new : Formatters::RecordingListHuman.new
           @stdout.puts formatter.format(manifest)

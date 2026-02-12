@@ -132,37 +132,41 @@ RSpec.describe Raygatherer::CLI do
       end
 
       it "routes 'recording list' to Commands::Recording::List" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Recording::List).to receive(:run).and_return(0)
 
         exit_code = described_class.run(["recording", "list", "--host", "http://test"], stdout: stdout, stderr: stderr)
 
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://test", username: nil, password: nil, verbose: false, stderr: stderr
+        )
         expect(Raygatherer::Commands::Recording::List).to have_received(:run).with(
           [],
           stdout: stdout,
           stderr: stderr,
-          verbose: false,
-          host: "http://test",
-          username: nil,
-          password: nil,
+          api_client: api_client,
           json: false
         )
         expect(exit_code).to eq(0)
       end
 
       it "passes --verbose to recording list command" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Recording::List).to receive(:run).and_return(0)
 
         described_class.run(["--verbose", "recording", "list", "--host", "http://test"],
                             stdout: stdout, stderr: stderr)
 
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://test", username: nil, password: nil, verbose: true, stderr: stderr
+        )
         expect(Raygatherer::Commands::Recording::List).to have_received(:run).with(
           [],
           stdout: stdout,
           stderr: stderr,
-          verbose: true,
-          host: "http://test",
-          username: nil,
-          password: nil,
+          api_client: api_client,
           json: false
         )
       end
@@ -329,6 +333,8 @@ RSpec.describe Raygatherer::CLI do
       end
 
       it "extracts --json and passes as keyword param" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
         allow(Raygatherer::Commands::Recording::List).to receive(:run).and_return(0)
 
         described_class.run(["--json", "recording", "list", "--host", "http://test"],
@@ -338,10 +344,7 @@ RSpec.describe Raygatherer::CLI do
           [],
           stdout: stdout,
           stderr: stderr,
-          verbose: false,
-          host: "http://test",
-          username: nil,
-          password: nil,
+          api_client: api_client,
           json: true
         )
       end

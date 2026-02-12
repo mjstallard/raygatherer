@@ -77,14 +77,12 @@ module Raygatherer
 
       if command == "recording" && subcommand == "list"
         require_relative "commands/recording/list"
+        return 1 unless require_host!
         return Commands::Recording::List.run(
           @argv,
           stdout: @stdout,
           stderr: @stderr,
-          verbose: @verbose,
-          host: @host,
-          username: @username,
-          password: @password,
+          api_client: build_api_client,
           json: @json
         )
       end
