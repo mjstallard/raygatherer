@@ -476,4 +476,78 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result["disk_stats"]).to be_a(Hash)
     end
   end
+
+  describe "#download_recording" do
+    let(:recording_name) { "1738950000" }
+    let(:binary_content) { "\x00\x01\x02\x03\x04".b }
+    let(:io) { StringIO.new }
+
+    it "streams body bytes to the given IO for qmdl format" do
+      stub_request(:get, "#{host}/api/qmdl/#{recording_name}")
+        .to_return(status: 200, body: binary_content)
+
+      client.download_recording(recording_name, format: :qmdl, io: io)
+
+      expect(io.string.b).to eq(binary_content)
+    end
+
+    it "uses /api/qmdl path for qmdl format (default)" do
+      stub_request(:get, "#{host}/api/qmdl/#{recording_name}")
+        .to_return(status: 200, body: binary_content)
+
+      client.download_recording(recording_name, io: io)
+
+      expect(WebMock).to have_requested(:get, "#{host}/api/qmdl/#{recording_name}")
+    end
+
+    it "uses /api/pcap path for pcap format" do
+      stub_request(:get, "#{host}/api/pcap/#{recording_name}")
+        .to_return(status: 200, body: binary_content)
+
+      client.download_recording(recording_name, format: :pcap, io: io)
+
+      expect(WebMock).to have_requested(:get, "#{host}/api/pcap/#{recording_name}")
+    end
+
+    it "uses /api/zip path for zip format" do
+      stub_request(:get, "#{host}/api/zip/#{recording_name}")
+        .to_return(status: 200, body: binary_content)
+
+      client.download_recording(recording_name, format: :zip, io: io)
+
+      expect(WebMock).to have_requested(:get, "#{host}/api/zip/#{recording_name}")
+    end
+
+    it "raises ApiError on 404" do
+      stub_request(:get, "#{host}/api/qmdl/#{recording_name}")
+        .to_return(status: 404, body: "Not Found")
+
+      expect { client.download_recording(recording_name, io: io) }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 404/
+      )
+    end
+
+    it "raises ConnectionError on connection failure" do
+      stub_request(:get, "#{host}/api/qmdl/#{recording_name}")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.download_recording(recording_name, io: io) }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+
+    it "sends basic auth credentials when configured" do
+      auth_client = described_class.new(host, username: "user", password: "pass")
+
+      stub_request(:get, "#{host}/api/qmdl/#{recording_name}")
+        .with(basic_auth: ["user", "pass"])
+        .to_return(status: 200, body: binary_content)
+
+      auth_client.download_recording(recording_name, io: io)
+
+      expect(io.string.b).to eq(binary_content)
+    end
+  end
 end

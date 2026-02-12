@@ -2,6 +2,8 @@
 
 require "httparty"
 require "json"
+require "net/http"
+require "uri"
 
 module Raygatherer
   class ApiClient
@@ -44,6 +46,15 @@ module Raygatherer
       end
     end
 
+    def download_recording(name, format: :qmdl, io:)
+      path = case format
+             when :qmdl then "/api/qmdl/#{name}"
+             when :pcap then "/api/pcap/#{name}"
+             when :zip  then "/api/zip/#{name}"
+             end
+      stream_to(path, io)
+    end
+
     private
 
     def get(path)
@@ -77,6 +88,37 @@ module Raygatherer
     rescue ParseError => e
       log_verbose "Parse failed: #{e.message}"
       raise
+    end
+
+    def stream_to(path, io)
+      uri = URI.parse("#{@host}#{path}")
+
+      log_verbose "HTTP GET #{uri} (streaming)"
+
+      start_time = Time.now
+      log_verbose "Request started at: #{start_time.utc}"
+
+      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
+        request = Net::HTTP::Get.new(uri.request_uri)
+        request.basic_auth(@username, @password) if @username && @password
+
+        http.request(request) do |response|
+          elapsed = Time.now - start_time
+          status_text = response.code == "200" ? "OK" : response.message.to_s
+          log_verbose "Response received: #{response.code} #{status_text} (#{format('%.3f', elapsed)}s)"
+
+          unless response.is_a?(Net::HTTPSuccess)
+            raise ApiError, "Server returned #{response.code}: #{response.message}"
+          end
+
+          response.read_body do |chunk|
+            io.write(chunk)
+          end
+        end
+      end
+    rescue SocketError, Errno::ECONNREFUSED, Net::OpenTimeout, Net::ReadTimeout => e
+      log_verbose "Connection error: #{e.class} - #{e.message}"
+      raise ConnectionError, "Failed to connect to #{@host}: #{e.message}"
     end
 
     def log_verbose(message)
