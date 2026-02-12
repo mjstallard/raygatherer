@@ -274,6 +274,24 @@ RSpec.describe Raygatherer::Commands::Alerts do
         expect(exit_code).to eq(10)
       end
 
+      it "returns no alerts when all alerts are before the timestamp" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          rows: [
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old alert" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, { "event_type" => "Low", "message" => "Also old" }] }
+          ]
+        })
+
+        exit_code = described_class.run(
+          ["--after", "2024-02-07T14:25:34Z"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stdout.string).to include("No alerts detected")
+        expect(exit_code).to eq(0)
+      end
+
       it "returns error for invalid timestamp" do
         exit_code = described_class.run(
           ["--after", "not-a-timestamp"],
