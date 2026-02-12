@@ -15,6 +15,7 @@ require_relative "raygatherer/commands/recording/list"
 require_relative "raygatherer/commands/recording/download"
 require_relative "raygatherer/commands/recording/delete"
 require_relative "raygatherer/commands/recording/stop"
+require_relative "raygatherer/commands/recording/start"
 require_relative "raygatherer/commands/stats"
 
 module Raygatherer

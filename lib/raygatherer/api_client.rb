@@ -63,6 +63,10 @@ module Raygatherer
       post("/api/stop-recording")
     end
 
+    def start_recording
+      post("/api/start-recording")
+    end
+
     private
 
     def get(path)

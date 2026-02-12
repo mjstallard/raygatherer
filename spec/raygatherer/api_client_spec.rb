@@ -634,4 +634,45 @@ RSpec.describe Raygatherer::ApiClient do
       auth_client.stop_recording
     end
   end
+
+  describe "#start_recording" do
+    it "POSTs to the start recording endpoint" do
+      stub_request(:post, "#{host}/api/start-recording")
+        .to_return(status: 202, body: "")
+
+      client.start_recording
+
+      expect(WebMock).to have_requested(:post, "#{host}/api/start-recording")
+    end
+
+    it "raises ApiError on non-202 response" do
+      stub_request(:post, "#{host}/api/start-recording")
+        .to_return(status: 500, body: "Internal Server Error")
+
+      expect { client.start_recording }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 500/
+      )
+    end
+
+    it "raises ConnectionError on connection failure" do
+      stub_request(:post, "#{host}/api/start-recording")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.start_recording }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+
+    it "sends basic auth credentials when configured" do
+      auth_client = described_class.new(host, username: "user", password: "pass")
+
+      stub_request(:post, "#{host}/api/start-recording")
+        .with(basic_auth: ["user", "pass"])
+        .to_return(status: 202, body: "")
+
+      auth_client.start_recording
+    end
+  end
 end

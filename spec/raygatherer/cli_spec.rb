@@ -231,6 +231,25 @@ RSpec.describe Raygatherer::CLI do
         expect(exit_code).to eq(0)
       end
 
+      it "routes 'recording start' to Commands::Recording::Start" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Recording::Start).to receive(:run).and_return(0)
+
+        exit_code = described_class.run(
+          ["recording", "start", "--host", "http://test"],
+          stdout: stdout, stderr: stderr
+        )
+
+        expect(Raygatherer::Commands::Recording::Start).to have_received(:run).with(
+          [],
+          stdout: stdout,
+          stderr: stderr,
+          api_client: api_client
+        )
+        expect(exit_code).to eq(0)
+      end
+
       it "routes 'stats' to Commands::Stats" do
         api_client = instance_double(Raygatherer::ApiClient)
         allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
