@@ -55,6 +55,10 @@ module Raygatherer
       stream_to(path, io)
     end
 
+    def delete_recording(name)
+      post("/api/delete-recording/#{name}")
+    end
+
     private
 
     def get(path)
@@ -88,6 +92,37 @@ module Raygatherer
     rescue ParseError => e
       log_verbose "Parse failed: #{e.message}"
       raise
+    end
+
+    def post(path)
+      url = "#{@host}#{path}"
+      options = {}
+      options[:basic_auth] = { username: @username, password: @password } if @username && @password
+
+      log_verbose "HTTP POST #{url}"
+      log_verbose "Basic Auth: user=#{@username}" if @username
+
+      start_time = Time.now
+      log_verbose "Request started at: #{start_time.utc}"
+
+      response = HTTParty.post(url, options)
+
+      elapsed = Time.now - start_time
+      status_text = response.code == 202 ? "Accepted" : response.message.to_s
+      log_verbose "Response received: #{response.code} #{status_text} (#{format('%.3f', elapsed)}s)"
+
+      body = response.body.to_s
+      log_verbose "Raw response body (#{body.bytesize} bytes):"
+      log_verbose body if @verbose
+
+      unless response.code == 202
+        raise ApiError, "Server returned #{response.code}: #{response.message}"
+      end
+
+      body
+    rescue SocketError, Errno::ECONNREFUSED, Net::OpenTimeout, Net::ReadTimeout => e
+      log_verbose "Connection error: #{e.class} - #{e.message}"
+      raise ConnectionError, "Failed to connect to #{@host}: #{e.message}"
     end
 
     def stream_to(path, io)

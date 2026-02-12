@@ -193,6 +193,25 @@ RSpec.describe Raygatherer::CLI do
         expect(exit_code).to eq(0)
       end
 
+      it "routes 'recording delete' to Commands::Recording::Delete" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Recording::Delete).to receive(:run).and_return(0)
+
+        exit_code = described_class.run(
+          ["recording", "delete", "myrecording", "--host", "http://test"],
+          stdout: stdout, stderr: stderr
+        )
+
+        expect(Raygatherer::Commands::Recording::Delete).to have_received(:run).with(
+          ["myrecording"],
+          stdout: stdout,
+          stderr: stderr,
+          api_client: api_client
+        )
+        expect(exit_code).to eq(0)
+      end
+
       it "routes 'stats' to Commands::Stats" do
         api_client = instance_double(Raygatherer::ApiClient)
         allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)

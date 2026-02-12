@@ -245,6 +245,45 @@ RSpec.describe "CLI Integration" do
     end
   end
 
+  describe "raygatherer recording delete" do
+    it "requires --host flag" do
+      stdout, stderr, status = Open3.capture3(exe_path, "recording", "delete", "myrecording")
+
+      expect(stderr).to include("--host is required")
+      expect(stderr).to include("Usage:")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "shows help with --help" do
+      stdout, stderr, status = Open3.capture3(exe_path, "recording", "delete", "--help")
+
+      expect(stdout).to include("Usage:")
+      expect(stdout).to include("recording delete")
+      expect(stdout).to include("--host")
+      expect(stderr).to be_empty
+      expect(status.exitstatus).to eq(0)
+    end
+
+    it "handles connection errors gracefully" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "recording", "delete", "myrecording", "--host", "http://localhost:9999"
+      )
+
+      expect(stderr).to include("Error")
+      expect(stderr).to include("Failed to connect")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "requires a recording name argument" do
+      stdout, stderr, status = Open3.capture3(
+        exe_path, "recording", "delete", "--host", "http://localhost:9999"
+      )
+
+      expect(stderr).to include("recording name is required")
+      expect(status.exitstatus).to eq(1)
+    end
+  end
+
   describe "raygatherer help includes recording download" do
     it "shows recording download in help output" do
       stdout, stderr, status = Open3.capture3(exe_path, "--help")
@@ -259,6 +298,15 @@ RSpec.describe "CLI Integration" do
       stdout, stderr, status = Open3.capture3(exe_path, "--help")
 
       expect(stdout).to include("recording list")
+      expect(status.exitstatus).to eq(0)
+    end
+  end
+
+  describe "raygatherer help includes recording delete" do
+    it "shows recording delete in help output" do
+      stdout, stderr, status = Open3.capture3(exe_path, "--help")
+
+      expect(stdout).to include("recording delete")
       expect(status.exitstatus).to eq(0)
     end
   end

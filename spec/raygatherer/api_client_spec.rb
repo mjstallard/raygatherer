@@ -550,4 +550,47 @@ RSpec.describe Raygatherer::ApiClient do
       expect(io.string.b).to eq(binary_content)
     end
   end
+
+  describe "#delete_recording" do
+    let(:recording_name) { "1738950000" }
+
+    it "POSTs to the delete recording endpoint" do
+      stub_request(:post, "#{host}/api/delete-recording/#{recording_name}")
+        .to_return(status: 202, body: "")
+
+      client.delete_recording(recording_name)
+
+      expect(WebMock).to have_requested(:post, "#{host}/api/delete-recording/#{recording_name}")
+    end
+
+    it "raises ApiError on non-202 response" do
+      stub_request(:post, "#{host}/api/delete-recording/#{recording_name}")
+        .to_return(status: 400, body: "Not Found")
+
+      expect { client.delete_recording(recording_name) }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 400/
+      )
+    end
+
+    it "raises ConnectionError on connection failure" do
+      stub_request(:post, "#{host}/api/delete-recording/#{recording_name}")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.delete_recording(recording_name) }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+
+    it "sends basic auth credentials when configured" do
+      auth_client = described_class.new(host, username: "user", password: "pass")
+
+      stub_request(:post, "#{host}/api/delete-recording/#{recording_name}")
+        .with(basic_auth: ["user", "pass"])
+        .to_return(status: 202, body: "")
+
+      auth_client.delete_recording(recording_name)
+    end
+  end
 end
