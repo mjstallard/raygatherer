@@ -209,6 +209,29 @@ RSpec.describe Raygatherer::Commands::Alerts do
       end
     end
 
+    describe "--after flag" do
+      it "shows only alerts after the given timestamp" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          rows: [
+            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Low", "message" => "Before alert" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, { "event_type" => "Medium", "message" => "At boundary alert" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "High", "message" => "After alert" }] }
+          ]
+        })
+
+        exit_code = described_class.run(
+          ["--after", "2024-02-07T14:25:33Z"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stdout.string).to include("After alert")
+        expect(stdout.string).not_to include("Before alert")
+        expect(stdout.string).not_to include("At boundary alert")
+        expect(exit_code).to eq(12)
+      end
+    end
+
     describe "edge cases" do
       it "handles missing analyzer name gracefully" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({

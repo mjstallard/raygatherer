@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "optparse"
+require "time"
 require_relative "base"
 require_relative "../formatters/json"
 
@@ -18,6 +19,7 @@ module Raygatherer
         super(argv, stdout: stdout, stderr: stderr, api_client: api_client)
         @json = json
         @latest = false
+        @after = nil
       end
 
       def run
@@ -26,6 +28,7 @@ module Raygatherer
 
           data = @api_client.fetch_live_analysis_report
           alerts = extract_alerts(data[:rows], data[:metadata])
+          alerts = filter_after(alerts) if @after
           alerts = filter_latest(alerts, data[:rows]) if @latest
 
           # Select formatter based on --json flag
@@ -47,6 +50,10 @@ module Raygatherer
 
           opts.on("--latest", "Show only alerts from the most recent message") do
             @latest = true
+          end
+
+          opts.on("--after TIMESTAMP", "Show only alerts after this time (ISO 8601)") do |ts|
+            @after = parse_timestamp(ts)
           end
 
           opts.on("-h", "--help", "Show this help message") do
@@ -82,6 +89,16 @@ module Raygatherer
         end
 
         alerts
+      end
+
+      def parse_timestamp(str)
+        Time.parse(str)
+      rescue ArgumentError
+        raise ArgumentError, "invalid timestamp: #{str}"
+      end
+
+      def filter_after(alerts)
+        alerts.select { |a| Time.parse(a[:packet_timestamp]) > @after }
       end
 
       def filter_latest(alerts, rows)
