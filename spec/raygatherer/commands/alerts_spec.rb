@@ -230,6 +230,16 @@ RSpec.describe Raygatherer::Commands::Alerts do
         expect(stdout.string).not_to include("At boundary alert")
         expect(exit_code).to eq(12)
       end
+
+      it "returns error for invalid timestamp" do
+        exit_code = described_class.run(
+          ["--after", "not-a-timestamp"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stderr.string).to include("invalid timestamp")
+        expect(exit_code).to eq(1)
+      end
     end
 
     describe "edge cases" do
