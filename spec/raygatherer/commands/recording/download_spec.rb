@@ -261,6 +261,21 @@ RSpec.describe Raygatherer::Commands::Recording::Download do
         expect(exit_code).to eq(1)
       end
 
+      it "shows spinner on stderr during download" do
+        allow(api_client).to receive(:download_recording) do |_name, **kwargs|
+          sleep 0.2
+          kwargs[:io].write(binary_content)
+        end
+
+        exit_code = described_class.run(
+          ["myrecording"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stderr.string).to include("Downloading...")
+        expect(exit_code).to eq(0)
+      end
+
       it "handles file permission errors gracefully" do
         allow(api_client).to receive(:download_recording)
 

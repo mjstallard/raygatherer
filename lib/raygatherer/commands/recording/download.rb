@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "optparse"
+require_relative "../../spinner"
 
 module Raygatherer
   module Commands
@@ -46,7 +47,13 @@ module Raygatherer
             return 1
           end
 
-          download_to_file(name, dest_path)
+          spinner = Spinner.new(stderr: @stderr)
+          spinner.spin
+          begin
+            download_to_file(name, dest_path)
+          ensure
+            spinner.stop
+          end
 
           size = File.size(dest_path)
           @stdout.puts "#{dest_path} (#{format_size(size)})"
