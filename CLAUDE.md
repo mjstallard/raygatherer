@@ -7,6 +7,7 @@ Raygatherer: Ruby CLI for fetching and displaying alerts from Rayhunter (cell to
 - Run tests: `bundle exec rspec`
 - Run CLI: `bundle exec ./exe/raygatherer`
 - CI: GitHub Actions on push to master and all PRs
+- `rayhunter` itself is checked out at `/Users/mike/workspace/rayhunter/`
 
 # ARCHITECTURE
 
