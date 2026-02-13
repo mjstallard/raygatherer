@@ -72,7 +72,7 @@ module Raygatherer
       response, body = request(:get, path, ok_code: "200", ok_status_text: "OK")
 
       unless response.is_a?(Net::HTTPSuccess)
-        raise ApiError, "Server returned #{response.code}: #{response.message}"
+        raise ApiError, server_error_message(response, body)
       end
 
       yield body
@@ -85,7 +85,7 @@ module Raygatherer
       response, body = request(:post, path, ok_code: "202", ok_status_text: "Accepted")
 
       unless response.code == "202"
-        raise ApiError, "Server returned #{response.code}: #{response.message}"
+        raise ApiError, server_error_message(response, body)
       end
 
       body
@@ -144,7 +144,8 @@ module Raygatherer
           log_verbose "Response received: #{response.code} #{status_text} (#{format('%.3f', elapsed)}s)"
 
           unless response.is_a?(Net::HTTPSuccess)
-            raise ApiError, "Server returned #{response.code}: #{response.message}"
+            error_body = response.read_body
+            raise ApiError, server_error_message(response, error_body)
           end
 
           response.read_body do |chunk|
@@ -155,6 +156,12 @@ module Raygatherer
     rescue SocketError, Errno::ECONNREFUSED, Net::OpenTimeout, Net::ReadTimeout => e
       log_verbose "Connection error: #{e.class} - #{e.message}"
       raise ConnectionError, "Failed to connect to #{@host}: #{e.message}"
+    end
+
+    def server_error_message(response, body)
+      detail = body.to_s.strip
+      detail = response.message if detail.empty?
+      "Server returned #{response.code}: #{detail}"
     end
 
     def log_verbose(message)

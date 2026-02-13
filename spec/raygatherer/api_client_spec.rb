@@ -635,6 +635,49 @@ RSpec.describe Raygatherer::ApiClient do
     end
   end
 
+  describe "error messages include response body" do
+    it "GET error includes response body text" do
+      stub_request(:get, "#{host}/api/analysis-report/live")
+        .to_return(status: 503, body: "No QMDL data's being recorded to analyze, try starting a new recording!")
+
+      expect { client.fetch_live_analysis_report }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /No QMDL data's being recorded/
+      )
+    end
+
+    it "POST error includes response body text" do
+      stub_request(:post, "#{host}/api/delete-recording/1738950000")
+        .to_return(status: 400, body: "no recording with that name")
+
+      expect { client.delete_recording("1738950000") }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /no recording with that name/
+      )
+    end
+
+    it "streaming error includes response body text" do
+      stub_request(:get, "#{host}/api/qmdl/1738950000")
+        .to_return(status: 404, body: "Couldn't find QMDL entry with name \"1738950000\"")
+
+      io = StringIO.new
+      expect { client.download_recording("1738950000", io: io) }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Couldn't find QMDL entry/
+      )
+    end
+
+    it "falls back to HTTP status text when body is empty" do
+      stub_request(:get, "#{host}/api/analysis-report/live")
+        .to_return(status: [500, "Internal Server Error"], body: "")
+
+      expect { client.fetch_live_analysis_report }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 500: Internal Server Error/
+      )
+    end
+  end
+
   describe "#start_recording" do
     it "POSTs to the start recording endpoint" do
       stub_request(:post, "#{host}/api/start-recording")
