@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "raygatherer/version"
+require_relative "raygatherer/config"
 require_relative "raygatherer/cli"
 require_relative "raygatherer/api_client"
 require_relative "raygatherer/formatters/human"
