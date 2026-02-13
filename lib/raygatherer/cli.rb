@@ -15,6 +15,16 @@ module Raygatherer
       end
     end
 
+    ROUTES = {
+      ["stats", nil]            => { file: "commands/stats",              klass: "Commands::Stats",              json: true },
+      ["alerts", nil]           => { file: "commands/alerts",             klass: "Commands::Alerts",             json: true },
+      ["recording", "list"]     => { file: "commands/recording/list",     klass: "Commands::Recording::List",    json: true },
+      ["recording", "download"] => { file: "commands/recording/download", klass: "Commands::Recording::Download", json: false },
+      ["recording", "delete"]   => { file: "commands/recording/delete",   klass: "Commands::Recording::Delete",  json: false },
+      ["recording", "stop"]     => { file: "commands/recording/stop",     klass: "Commands::Recording::Stop",    json: false },
+      ["recording", "start"]    => { file: "commands/recording/start",    klass: "Commands::Recording::Start",   json: false }
+    }.freeze
+
     def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
       new(argv, stdout: stdout, stderr: stderr, config: config).run
     end
@@ -56,93 +66,28 @@ module Raygatherer
 
       # Route to commands
       command = @argv.shift
+      subcommand = @argv.first
 
-      if command == "stats"
-        require_relative "commands/stats"
-        return 1 unless require_host!
-        return Commands::Stats.run(
-          @argv,
-          stdout: @stdout,
-          stderr: @stderr,
-          api_client: build_api_client,
-          json: @json
-        )
+      route = ROUTES[[command, subcommand]]
+      if route
+        @argv.shift # consume subcommand
+      else
+        route = ROUTES[[command, nil]]
       end
 
-      if command == "alerts"
-        require_relative "commands/alerts"
-        return 1 unless require_host!
-        return Commands::Alerts.run(
-          @argv,
-          stdout: @stdout,
-          stderr: @stderr,
-          api_client: build_api_client,
-          json: @json
-        )
+      unless route
+        @stderr.puts "Unknown command: #{[command, subcommand].compact.join(' ')}"
+        show_help(@stderr)
+        return 1
       end
 
-      subcommand = @argv.shift
+      require_relative route[:file]
+      return 1 unless require_host!
 
-      if command == "recording" && subcommand == "list"
-        require_relative "commands/recording/list"
-        return 1 unless require_host!
-        return Commands::Recording::List.run(
-          @argv,
-          stdout: @stdout,
-          stderr: @stderr,
-          api_client: build_api_client,
-          json: @json
-        )
-      end
+      kwargs = { stdout: @stdout, stderr: @stderr, api_client: build_api_client }
+      kwargs[:json] = @json if route[:json]
 
-      if command == "recording" && subcommand == "download"
-        require_relative "commands/recording/download"
-        return 1 unless require_host!
-        return Commands::Recording::Download.run(
-          @argv,
-          stdout: @stdout,
-          stderr: @stderr,
-          api_client: build_api_client
-        )
-      end
-
-      if command == "recording" && subcommand == "delete"
-        require_relative "commands/recording/delete"
-        return 1 unless require_host!
-        return Commands::Recording::Delete.run(
-          @argv,
-          stdout: @stdout,
-          stderr: @stderr,
-          api_client: build_api_client
-        )
-      end
-
-      if command == "recording" && subcommand == "stop"
-        require_relative "commands/recording/stop"
-        return 1 unless require_host!
-        return Commands::Recording::Stop.run(
-          @argv,
-          stdout: @stdout,
-          stderr: @stderr,
-          api_client: build_api_client
-        )
-      end
-
-      if command == "recording" && subcommand == "start"
-        require_relative "commands/recording/start"
-        return 1 unless require_host!
-        return Commands::Recording::Start.run(
-          @argv,
-          stdout: @stdout,
-          stderr: @stderr,
-          api_client: build_api_client
-        )
-      end
-
-      # Unknown command
-      @stderr.puts "Unknown command: #{[command, subcommand].compact.join(' ')}"
-      show_help(@stderr)
-      1
+      resolve_class(route[:klass]).run(@argv, **kwargs)
     rescue Config::ConfigError => e
       @stderr.puts "Error: #{e.message}"
       1
@@ -189,6 +134,10 @@ module Raygatherer
       return nil unless @host
       ApiClient.new(@host, username: @username, password: @password,
                     verbose: @verbose, stderr: @stderr)
+    end
+
+    def resolve_class(name)
+      name.split("::").reduce(Raygatherer) { |mod, part| mod.const_get(part) }
     end
 
     def extract_value_flag(flag)
