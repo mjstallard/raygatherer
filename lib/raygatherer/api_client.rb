@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "httparty"
 require "json"
 require "net/http"
 require "uri"
@@ -70,9 +69,9 @@ module Raygatherer
     private
 
     def get(path)
-      response, body = request(:get, path, ok_code: 200, ok_status_text: "OK")
+      response, body = request(:get, path, ok_code: "200", ok_status_text: "OK")
 
-      unless response.success?
+      unless response.is_a?(Net::HTTPSuccess)
         raise ApiError, "Server returned #{response.code}: #{response.message}"
       end
 
@@ -83,9 +82,9 @@ module Raygatherer
     end
 
     def post(path)
-      response, body = request(:post, path, ok_code: 202, ok_status_text: "Accepted")
+      response, body = request(:post, path, ok_code: "202", ok_status_text: "Accepted")
 
-      unless response.code == 202
+      unless response.code == "202"
         raise ApiError, "Server returned #{response.code}: #{response.message}"
       end
 
@@ -94,8 +93,7 @@ module Raygatherer
 
     def request(method, path, ok_code:, ok_status_text:)
       url = "#{@host}#{path}"
-      options = {}
-      options[:basic_auth] = { username: @username, password: @password } if @username && @password
+      uri = URI.parse(url)
 
       log_verbose "HTTP #{method.to_s.upcase} #{url}"
       log_verbose "Basic Auth: user=#{@username}" if @username
@@ -103,7 +101,16 @@ module Raygatherer
       start_time = Time.now
       log_verbose "Request started at: #{start_time.utc}"
 
-      response = HTTParty.public_send(method, url, options)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == "https")
+
+      req = case method
+            when :get then Net::HTTP::Get.new(uri.request_uri)
+            when :post then Net::HTTP::Post.new(uri.request_uri)
+            end
+      req.basic_auth(@username, @password) if @username && @password
+
+      response = http.request(req)
 
       elapsed = Time.now - start_time
       status_text = response.code == ok_code ? ok_status_text : response.message.to_s
