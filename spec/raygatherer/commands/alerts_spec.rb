@@ -311,6 +311,67 @@ RSpec.describe Raygatherer::Commands::Alerts do
       end
     end
 
+    describe "nil packet_timestamp" do
+      it "excludes alerts with nil timestamp when --after is used" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          rows: [
+            { "packet_timestamp" => nil, "events" => [nil, { "event_type" => "High", "message" => "Nil timestamp alert" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Valid alert" }] }
+          ]
+        })
+
+        exit_code = described_class.run(
+          ["--after", "2024-02-07T14:25:33Z"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stdout.string).to include("Valid alert")
+        expect(stdout.string).not_to include("Nil timestamp alert")
+        expect(exit_code).to eq(10)
+      end
+
+      it "excludes alerts with nil timestamp when --latest is used" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          rows: [
+            { "packet_timestamp" => nil, "events" => [nil, { "event_type" => "High", "message" => "Nil timestamp alert" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Valid alert" }] }
+          ]
+        })
+
+        exit_code = described_class.run(
+          ["--latest"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stdout.string).to include("Valid alert")
+        expect(stdout.string).not_to include("Nil timestamp alert")
+        expect(exit_code).to eq(10)
+      end
+
+      it "handles mix of nil and non-nil timestamps with --after --latest" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          rows: [
+            { "packet_timestamp" => nil, "events" => [nil, { "event_type" => "High", "message" => "Nil ts" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Earlier" }] },
+            { "packet_timestamp" => "2024-02-07T14:25:36Z", "events" => [nil, { "event_type" => "Medium", "message" => "Latest valid" }] }
+          ]
+        })
+
+        exit_code = described_class.run(
+          ["--after", "2024-02-07T14:25:33Z", "--latest"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stdout.string).to include("Latest valid")
+        expect(stdout.string).not_to include("Nil ts")
+        expect(stdout.string).not_to include("Earlier")
+        expect(exit_code).to eq(11)
+      end
+    end
+
     describe "edge cases" do
       it "handles missing analyzer name gracefully" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({

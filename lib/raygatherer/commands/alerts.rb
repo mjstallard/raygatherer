@@ -98,14 +98,14 @@ module Raygatherer
       end
 
       def filter_after(alerts)
-        alerts.select { |a| Time.parse(a[:packet_timestamp]) > @after }
+        alerts.select { |a| a[:packet_timestamp] && Time.parse(a[:packet_timestamp]) > @after }
       end
 
       def filter_latest(alerts, rows)
         latest_timestamp = if @after
-          alerts.map { |a| a[:packet_timestamp] }.max
+          alerts.map { |a| a[:packet_timestamp] }.compact.max
         else
-          rows.map { |r| r["packet_timestamp"] }.max
+          rows.map { |r| r["packet_timestamp"] }.compact.max
         end
         return [] if latest_timestamp.nil?
 
