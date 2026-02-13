@@ -1,13 +1,11 @@
 # frozen_string_literal: true
 
-require "colorize"
-
 module Raygatherer
   module Formatters
     class Human
       def format(alerts)
         if alerts.empty?
-          "✓ No alerts detected".green
+          colorize("✓ No alerts detected", :green)
         else
           alerts.map { |alert| format_alert(alert) }.join("\n\n")
         end
@@ -28,7 +26,12 @@ module Raygatherer
         output += "Analyzer: #{analyzer}\n" if analyzer
         output += "Time: #{timestamp}\n" if timestamp
         output += "Message: #{message}"
-        output.colorize(color)
+        colorize(output, color)
+      end
+
+      def colorize(text, color)
+        codes = { red: "31", yellow: "33", green: "32" }
+        "\e[0;#{codes[color]};49m#{text}\e[0m"
       end
     end
   end

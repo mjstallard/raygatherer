@@ -35,8 +35,6 @@ Gem::Specification.new do |spec|
 
   # Runtime dependencies
   spec.add_dependency "httparty", "~> 0.21"
-  spec.add_dependency "colorize", "~> 1.1"
-
   # Development dependencies
   spec.add_development_dependency "webmock", "~> 3.19"
 
