@@ -25,13 +25,10 @@ module Raygatherer
         end
       end
 
-      def with_error_handling(extra_errors: [])
+      def with_error_handling
         yield
       rescue CLI::EarlyExit
         raise
-      rescue *([ApiClient::ConnectionError, ApiClient::ApiError] + extra_errors) => e
-        @stderr.puts "Error: #{e.message}"
-        1
       rescue => e
         @stderr.puts "Error: #{e.message}"
         1

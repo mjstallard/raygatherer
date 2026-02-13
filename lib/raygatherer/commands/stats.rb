@@ -14,7 +14,7 @@ module Raygatherer
       end
 
       def run
-        with_error_handling(extra_errors: [ApiClient::ParseError]) do
+        with_error_handling do
           parse_options
 
           stats = @api_client.fetch_system_stats

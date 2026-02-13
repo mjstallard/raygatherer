@@ -11,7 +11,7 @@ RSpec.describe Raygatherer::Commands::Base do
       end
 
       def run
-        with_error_handling(extra_errors: [Raygatherer::ApiClient::ParseError]) do
+        with_error_handling do
           @action.call
         end
       end
@@ -33,7 +33,7 @@ RSpec.describe Raygatherer::Commands::Base do
     expect(stderr.string).to include("Error: nope")
   end
 
-  it "prints and returns 1 for extra errors" do
+  it "prints and returns 1 for ParseError" do
     command, _stdout, stderr = build_command(-> { raise Raygatherer::ApiClient::ParseError, "bad json" })
 
     expect(command.run).to eq(1)
