@@ -4,11 +4,11 @@ RSpec.describe Raygatherer::Formatters::StatsHuman do
   describe "#format" do
     let(:full_stats) do
       {
-        "disk_stats" => { "partition" => "/dev/sda1", "total_size" => "128G", "used_size" => "64G",
-                          "available_size" => "64G", "used_percent" => "50%", "mounted_on" => "/data" },
-        "memory_stats" => { "total" => "28.3M", "used" => "15.1M", "free" => "13.2M" },
-        "runtime_metadata" => { "rayhunter_version" => "1.2.3", "system_os" => "Linux 3.18.48", "arch" => "armv7l" },
-        "battery_status" => { "level" => 85, "is_plugged_in" => true }
+        "disk_stats" => {"partition" => "/dev/sda1", "total_size" => "128G", "used_size" => "64G",
+                         "available_size" => "64G", "used_percent" => "50%", "mounted_on" => "/data"},
+        "memory_stats" => {"total" => "28.3M", "used" => "15.1M", "free" => "13.2M"},
+        "runtime_metadata" => {"rayhunter_version" => "1.2.3", "system_os" => "Linux 3.18.48", "arch" => "armv7l"},
+        "battery_status" => {"level" => 85, "is_plugged_in" => true}
       }
     end
 
@@ -37,7 +37,7 @@ RSpec.describe Raygatherer::Formatters::StatsHuman do
     end
 
     it "shows battery when on battery" do
-      stats = full_stats.merge("battery_status" => { "level" => 42, "is_plugged_in" => false })
+      stats = full_stats.merge("battery_status" => {"level" => 42, "is_plugged_in" => false})
 
       output = described_class.new.format(stats)
 

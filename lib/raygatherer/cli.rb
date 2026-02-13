@@ -16,13 +16,13 @@ module Raygatherer
     end
 
     ROUTES = {
-      ["stats", nil]            => { file: "commands/stats",              klass: "Commands::Stats",              json: true },
-      ["alerts", nil]           => { file: "commands/alerts",             klass: "Commands::Alerts",             json: true },
-      ["recording", "list"]     => { file: "commands/recording/list",     klass: "Commands::Recording::List",    json: true },
-      ["recording", "download"] => { file: "commands/recording/download", klass: "Commands::Recording::Download", json: false },
-      ["recording", "delete"]   => { file: "commands/recording/delete",   klass: "Commands::Recording::Delete",  json: false },
-      ["recording", "stop"]     => { file: "commands/recording/stop",     klass: "Commands::Recording::Stop",    json: false },
-      ["recording", "start"]    => { file: "commands/recording/start",    klass: "Commands::Recording::Start",   json: false }
+      ["stats", nil] => {file: "commands/stats", klass: "Commands::Stats", json: true},
+      ["alerts", nil] => {file: "commands/alerts", klass: "Commands::Alerts", json: true},
+      ["recording", "list"] => {file: "commands/recording/list", klass: "Commands::Recording::List", json: true},
+      ["recording", "download"] => {file: "commands/recording/download", klass: "Commands::Recording::Download", json: false},
+      ["recording", "delete"] => {file: "commands/recording/delete", klass: "Commands::Recording::Delete", json: false},
+      ["recording", "stop"] => {file: "commands/recording/stop", klass: "Commands::Recording::Stop", json: false},
+      ["recording", "start"] => {file: "commands/recording/start", klass: "Commands::Recording::Start", json: false}
     }.freeze
 
     def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
@@ -59,7 +59,7 @@ module Raygatherer
       end
 
       # Check if first argument is a flag
-      if @argv.first =~ /^-/
+      if /^-/.match?(@argv.first)
         parse_options
         return 0
       end
@@ -76,7 +76,7 @@ module Raygatherer
       end
 
       unless route
-        @stderr.puts "Unknown command: #{[command, subcommand].compact.join(' ')}"
+        @stderr.puts "Unknown command: #{[command, subcommand].compact.join(" ")}"
         show_help(@stderr)
         return 1
       end
@@ -84,7 +84,7 @@ module Raygatherer
       require_relative route[:file]
       return 1 unless require_host!
 
-      kwargs = { stdout: @stdout, stderr: @stderr, api_client: build_api_client }
+      kwargs = {stdout: @stdout, stderr: @stderr, api_client: build_api_client}
       kwargs[:json] = @json if route[:json]
 
       resolve_class(route[:klass]).run(@argv, **kwargs)
@@ -133,7 +133,7 @@ module Raygatherer
     def build_api_client
       return nil unless @host
       ApiClient.new(@host, username: @username, password: @password,
-                    verbose: @verbose, stderr: @stderr)
+        verbose: @verbose, stderr: @stderr)
     end
 
     def resolve_class(name)

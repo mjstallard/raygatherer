@@ -31,7 +31,7 @@ module Raygatherer
       get("/api/qmdl-manifest") do |body|
         log_verbose "Parsing JSON response..."
         result = parse_json(body)
-        log_verbose "Parsed successfully: #{result['entries']&.length || 0} entries"
+        log_verbose "Parsed successfully: #{result["entries"]&.length || 0} entries"
         result
       end
     end
@@ -45,13 +45,13 @@ module Raygatherer
       end
     end
 
-    def download_recording(name, format: :qmdl, io:)
+    def download_recording(name, io:, format: :qmdl)
       encoded = URI.encode_www_form_component(name)
       path = case format
-             when :qmdl then "/api/qmdl/#{encoded}"
-             when :pcap then "/api/pcap/#{encoded}"
-             when :zip  then "/api/zip/#{encoded}"
-             end
+      when :qmdl then "/api/qmdl/#{encoded}"
+      when :pcap then "/api/pcap/#{encoded}"
+      when :zip then "/api/zip/#{encoded}"
+      end
       stream_to(path, io)
     end
 
@@ -106,16 +106,16 @@ module Raygatherer
       http.use_ssl = (uri.scheme == "https")
 
       req = case method
-            when :get then Net::HTTP::Get.new(uri.request_uri)
-            when :post then Net::HTTP::Post.new(uri.request_uri)
-            end
+      when :get then Net::HTTP::Get.new(uri.request_uri)
+      when :post then Net::HTTP::Post.new(uri.request_uri)
+      end
       req.basic_auth(@username, @password) if @username && @password
 
       response = http.request(req)
 
       elapsed = Time.now - start_time
-      status_text = response.code == ok_code ? ok_status_text : response.message.to_s
-      log_verbose "Response received: #{response.code} #{status_text} (#{format('%.3f', elapsed)}s)"
+      status_text = (response.code == ok_code) ? ok_status_text : response.message.to_s
+      log_verbose "Response received: #{response.code} #{status_text} (#{format("%.3f", elapsed)}s)"
 
       body = response.body.to_s
       log_verbose "Raw response body (#{body.bytesize} bytes):"
@@ -141,8 +141,8 @@ module Raygatherer
 
         http.request(request) do |response|
           elapsed = Time.now - start_time
-          status_text = response.code == "200" ? "OK" : response.message.to_s
-          log_verbose "Response received: #{response.code} #{status_text} (#{format('%.3f', elapsed)}s)"
+          status_text = (response.code == "200") ? "OK" : response.message.to_s
+          log_verbose "Response received: #{response.code} #{status_text} (#{format("%.3f", elapsed)}s)"
 
           unless response.is_a?(Net::HTTPSuccess)
             error_body = response.read_body
@@ -180,7 +180,7 @@ module Raygatherer
         parse_line(line, "row #{index + 1}")
       end
 
-      { metadata: metadata, rows: rows }
+      {metadata: metadata, rows: rows}
     rescue JSON::ParserError => e
       raise ParseError, "Failed to parse response: #{e.message}"
     end
@@ -199,7 +199,7 @@ module Raygatherer
 
     def normalize_host(host)
       # Add http:// if no scheme is present
-      if host !~ %r{^https?://}
+      if !%r{^https?://}.match?(host)
         "http://#{host}"
       else
         host

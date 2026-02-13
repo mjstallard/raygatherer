@@ -19,7 +19,7 @@ module Raygatherer
           sleep 0.15
           i += 1
         end
-        @stderr.print "\r#{' ' * 20}\r"
+        @stderr.print "\r#{" " * 20}\r"
       end
     end
 

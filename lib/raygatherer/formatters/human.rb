@@ -19,8 +19,8 @@ module Raygatherer
         analyzer = alert_data[:analyzer]
         timestamp = alert_data[:packet_timestamp]
 
-        icon = severity == "High" ? "🚨" : "⚠"
-        color = severity == "High" ? :red : :yellow
+        icon = (severity == "High") ? "🚨" : "⚠"
+        color = (severity == "High") ? :red : :yellow
 
         output = "#{icon} #{severity} severity alert detected\n"
         output += "Analyzer: #{analyzer}\n" if analyzer
@@ -30,7 +30,7 @@ module Raygatherer
       end
 
       def colorize(text, color)
-        codes = { red: "31", yellow: "33", green: "32" }
+        codes = {red: "31", yellow: "33", green: "32"}
         "\e[0;#{codes[color]};49m#{text}\e[0m"
       end
     end

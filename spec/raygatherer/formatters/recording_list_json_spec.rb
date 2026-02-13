@@ -43,7 +43,7 @@ RSpec.describe Raygatherer::Formatters::RecordingListJSON do
     end
 
     it "outputs valid JSON" do
-      manifest = { "entries" => [], "current_entry" => nil }
+      manifest = {"entries" => [], "current_entry" => nil}
 
       formatter = described_class.new
       output = formatter.format(manifest)

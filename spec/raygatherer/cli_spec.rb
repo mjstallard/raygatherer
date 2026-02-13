@@ -175,7 +175,7 @@ RSpec.describe Raygatherer::CLI do
         allow(Raygatherer::Commands::Recording::List).to receive(:run).and_return(0)
 
         described_class.run(["--verbose", "recording", "list", "--host", "http://test"],
-                            stdout: stdout, stderr: stderr)
+          stdout: stdout, stderr: stderr)
 
         expect(Raygatherer::ApiClient).to have_received(:new).with(
           "http://test", username: nil, password: nil, verbose: true, stderr: stderr
@@ -328,7 +328,7 @@ RSpec.describe Raygatherer::CLI do
         allow(Raygatherer::Commands::Alerts).to receive(:run).and_return(0)
 
         described_class.run(["--verbose", "alerts", "--host", "http://test"],
-                            stdout: stdout, stderr: stderr)
+          stdout: stdout, stderr: stderr)
 
         expect(Raygatherer::ApiClient).to have_received(:new).with(
           "http://test", username: nil, password: nil, verbose: true, stderr: stderr
@@ -348,7 +348,7 @@ RSpec.describe Raygatherer::CLI do
         allow(Raygatherer::Commands::Alerts).to receive(:run).and_return(0)
 
         described_class.run(["alerts", "--host", "http://test"],
-                            stdout: stdout, stderr: stderr)
+          stdout: stdout, stderr: stderr)
 
         expect(Raygatherer::ApiClient).to have_received(:new).with(
           "http://test", username: nil, password: nil, verbose: false, stderr: stderr
@@ -361,7 +361,7 @@ RSpec.describe Raygatherer::CLI do
         allow(Raygatherer::Commands::Alerts).to receive(:run).and_return(0)
 
         described_class.run(["alerts", "--verbose", "--host", "http://test"],
-                            stdout: stdout, stderr: stderr)
+          stdout: stdout, stderr: stderr)
 
         # --verbose should be extracted and passed to ApiClient, not to command
         expect(Raygatherer::ApiClient).to have_received(:new).with(
@@ -391,7 +391,7 @@ RSpec.describe Raygatherer::CLI do
         allow(Raygatherer::Commands::Alerts).to receive(:run).and_return(0)
 
         described_class.run(["--host", "http://myhost", "alerts"],
-                            stdout: stdout, stderr: stderr)
+          stdout: stdout, stderr: stderr)
 
         expect(Raygatherer::ApiClient).to have_received(:new).with(
           "http://myhost", username: nil, password: nil, verbose: false, stderr: stderr
@@ -428,7 +428,7 @@ RSpec.describe Raygatherer::CLI do
         allow(Raygatherer::Commands::Recording::List).to receive(:run).and_return(0)
 
         described_class.run(["--json", "recording", "list", "--host", "http://test"],
-                            stdout: stdout, stderr: stderr)
+          stdout: stdout, stderr: stderr)
 
         expect(Raygatherer::Commands::Recording::List).to have_received(:run).with(
           [],

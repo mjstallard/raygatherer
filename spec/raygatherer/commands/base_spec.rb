@@ -5,7 +5,7 @@ require "stringio"
 RSpec.describe Raygatherer::Commands::Base do
   def build_command(action, stdout: StringIO.new, stderr: StringIO.new)
     klass = Class.new(described_class) do
-      def initialize(argv, stdout:, stderr:, api_client: nil, action:)
+      def initialize(argv, stdout:, stderr:, action:, api_client: nil)
         super(argv, stdout: stdout, stderr: stderr, api_client: api_client)
         @action = action
       end

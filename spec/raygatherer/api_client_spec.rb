@@ -45,8 +45,8 @@ RSpec.describe Raygatherer::ApiClient do
 
     it "accepts username and password for basic auth" do
       client = described_class.new("http://rayhunter.example.com",
-                                   username: "user",
-                                   password: "pass")
+        username: "user",
+        password: "pass")
 
       stub_request(:get, "http://rayhunter.example.com/api/analysis-report/live")
         .with(basic_auth: ["user", "pass"])
@@ -348,7 +348,7 @@ RSpec.describe Raygatherer::ApiClient do
     end
 
     it "returns null current_entry when not recording" do
-      no_recording = { "entries" => manifest_response["entries"], "current_entry" => nil }
+      no_recording = {"entries" => manifest_response["entries"], "current_entry" => nil}
       stub_request(:get, "#{host}/api/qmdl-manifest")
         .to_return(status: 200, body: ::JSON.generate(no_recording))
 
@@ -403,11 +403,11 @@ RSpec.describe Raygatherer::ApiClient do
   describe "#fetch_system_stats" do
     let(:stats_response) do
       {
-        "disk_stats" => { "partition" => "/dev/sda1", "total_size" => "128G", "used_size" => "64G",
-                          "available_size" => "64G", "used_percent" => "50%", "mounted_on" => "/data" },
-        "memory_stats" => { "total" => "28.3M", "used" => "15.1M", "free" => "13.2M" },
-        "runtime_metadata" => { "rayhunter_version" => "1.2.3", "system_os" => "Linux 3.18.48", "arch" => "armv7l" },
-        "battery_status" => { "level" => 85, "is_plugged_in" => true }
+        "disk_stats" => {"partition" => "/dev/sda1", "total_size" => "128G", "used_size" => "64G",
+                         "available_size" => "64G", "used_percent" => "50%", "mounted_on" => "/data"},
+        "memory_stats" => {"total" => "28.3M", "used" => "15.1M", "free" => "13.2M"},
+        "runtime_metadata" => {"rayhunter_version" => "1.2.3", "system_os" => "Linux 3.18.48", "arch" => "armv7l"},
+        "battery_status" => {"level" => 85, "is_plugged_in" => true}
       }
     end
 

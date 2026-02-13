@@ -12,7 +12,7 @@ RSpec.describe Raygatherer::Formatters::JSON do
 
     it "formats single alert as JSON array with one element" do
       formatter = described_class.new
-      alerts = [{ severity: "Low", message: "Low severity issue detected", packet_timestamp: "2024-02-07T14:25:32Z", analyzer: "Analyzer A" }]
+      alerts = [{severity: "Low", message: "Low severity issue detected", packet_timestamp: "2024-02-07T14:25:32Z", analyzer: "Analyzer A"}]
       output = formatter.format(alerts)
 
       parsed = ::JSON.parse(output)
@@ -27,8 +27,8 @@ RSpec.describe Raygatherer::Formatters::JSON do
     it "formats multiple alerts as JSON array" do
       formatter = described_class.new
       alerts = [
-        { severity: "Low", message: "Low issue", packet_timestamp: "2024-02-07T14:25:32Z" },
-        { severity: "High", message: "High issue", packet_timestamp: "2024-02-07T14:25:33Z" }
+        {severity: "Low", message: "Low issue", packet_timestamp: "2024-02-07T14:25:32Z"},
+        {severity: "High", message: "High issue", packet_timestamp: "2024-02-07T14:25:33Z"}
       ]
       output = formatter.format(alerts)
 
@@ -41,7 +41,7 @@ RSpec.describe Raygatherer::Formatters::JSON do
 
     it "includes packet_timestamp from rayhunter data" do
       formatter = described_class.new
-      alerts = [{ severity: "High", message: "Test", packet_timestamp: "2024-02-07T14:25:32Z" }]
+      alerts = [{severity: "High", message: "Test", packet_timestamp: "2024-02-07T14:25:32Z"}]
       output = formatter.format(alerts)
 
       parsed = ::JSON.parse(output)
@@ -50,7 +50,7 @@ RSpec.describe Raygatherer::Formatters::JSON do
 
     it "output is valid JSON array (parseable)" do
       formatter = described_class.new
-      alerts = [{ severity: "High", message: "Test message", packet_timestamp: "2024-02-07T14:25:32Z", analyzer: "Analyzer A" }]
+      alerts = [{severity: "High", message: "Test message", packet_timestamp: "2024-02-07T14:25:32Z", analyzer: "Analyzer A"}]
       output = formatter.format(alerts)
 
       expect { ::JSON.parse(output) }.not_to raise_error

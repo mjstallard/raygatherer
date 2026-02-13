@@ -12,7 +12,7 @@ RSpec.describe Raygatherer::Formatters::Human do
     end
 
     it "shows yellow warning for Low severity with analyzer and timestamp" do
-      alerts = [{ severity: "Low", message: "Test low alert", analyzer: "Analyzer A", packet_timestamp: "2024-02-07T14:25:32Z" }]
+      alerts = [{severity: "Low", message: "Test low alert", analyzer: "Analyzer A", packet_timestamp: "2024-02-07T14:25:32Z"}]
       result = subject.format(alerts)
 
       expect(result).to include("⚠")
@@ -25,7 +25,7 @@ RSpec.describe Raygatherer::Formatters::Human do
     end
 
     it "shows yellow warning for Medium severity" do
-      alerts = [{ severity: "Medium", message: "Connection redirect to 2G detected", analyzer: "Analyzer B", packet_timestamp: "2024-02-07T14:25:33Z" }]
+      alerts = [{severity: "Medium", message: "Connection redirect to 2G detected", analyzer: "Analyzer B", packet_timestamp: "2024-02-07T14:25:33Z"}]
       result = subject.format(alerts)
 
       expect(result).to include("⚠")
@@ -36,7 +36,7 @@ RSpec.describe Raygatherer::Formatters::Human do
     end
 
     it "shows red alert for High severity" do
-      alerts = [{ severity: "High", message: "Critical IMSI catcher detected", analyzer: "Analyzer A", packet_timestamp: "2024-02-07T14:25:32Z" }]
+      alerts = [{severity: "High", message: "Critical IMSI catcher detected", analyzer: "Analyzer A", packet_timestamp: "2024-02-07T14:25:32Z"}]
       result = subject.format(alerts)
 
       expect(result).to include("🚨")
@@ -48,8 +48,8 @@ RSpec.describe Raygatherer::Formatters::Human do
 
     it "shows multiple alerts separated by blank lines" do
       alerts = [
-        { severity: "Low", message: "Low issue", analyzer: "Analyzer A", packet_timestamp: "2024-02-07T14:25:32Z" },
-        { severity: "High", message: "High issue", analyzer: "Analyzer B", packet_timestamp: "2024-02-07T14:25:33Z" }
+        {severity: "Low", message: "Low issue", analyzer: "Analyzer A", packet_timestamp: "2024-02-07T14:25:32Z"},
+        {severity: "High", message: "High issue", analyzer: "Analyzer B", packet_timestamp: "2024-02-07T14:25:33Z"}
       ]
       result = subject.format(alerts)
 

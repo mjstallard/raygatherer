@@ -100,7 +100,7 @@ RSpec.describe Raygatherer::Config do
     it "defaults to ~/.config when XDG_CONFIG_HOME is not set" do
       config = described_class.new(env: {})
 
-      expected_path = File.join(Dir.home, ".config", "raygatherer", "config.yml")
+      File.join(Dir.home, ".config", "raygatherer", "config.yml")
       # File won't exist, so should return empty hash
       expect(config.load).to eq({})
     end

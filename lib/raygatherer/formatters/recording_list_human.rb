@@ -7,6 +7,7 @@ module Raygatherer
   module Formatters
     class RecordingListHuman
       include FormatHelpers
+
       def format(manifest)
         entries = manifest["entries"] || []
         current = manifest["current_entry"]
@@ -44,19 +45,19 @@ module Raygatherer
       def format_entry(entry, active:)
         lines = []
 
-        if active
-          lines << "\u25CF #{entry['name']} (recording)"
+        lines << if active
+          "\u25CF #{entry["name"]} (recording)"
         else
-          lines << "  #{entry['name']}"
+          "  #{entry["name"]}"
         end
 
-        lines << "  Started:      #{format_time(entry['start_time'])}"
+        lines << "  Started:      #{format_time(entry["start_time"])}"
 
         unless active
-          lines << "  Last message: #{format_time(entry['last_message_time'])}"
+          lines << "  Last message: #{format_time(entry["last_message_time"])}"
         end
 
-        lines << "  Size:         #{format_size(entry['qmdl_size_bytes'])}"
+        lines << "  Size:         #{format_size(entry["qmdl_size_bytes"])}"
 
         lines.join("\n")
       end
@@ -66,7 +67,6 @@ module Raygatherer
 
         Time.parse(time_string).strftime("%Y-%m-%d %H:%M:%S")
       end
-
     end
   end
 end

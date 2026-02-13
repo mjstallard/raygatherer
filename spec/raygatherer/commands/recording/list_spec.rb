@@ -41,8 +41,8 @@ RSpec.describe Raygatherer::Commands::Recording::List do
       it "outputs recording entries in human format by default" do
         allow(api_client).to receive(:fetch_manifest).and_return({
           "entries" => [
-            { "name" => "1738950000", "start_time" => "2025-02-07T13:40:00+00:00",
-              "last_message_time" => "2025-02-07T15:30:00+00:00", "qmdl_size_bytes" => 134_963_200 }
+            {"name" => "1738950000", "start_time" => "2025-02-07T13:40:00+00:00",
+             "last_message_time" => "2025-02-07T15:30:00+00:00", "qmdl_size_bytes" => 134_963_200}
           ],
           "current_entry" => nil
         })
@@ -57,8 +57,8 @@ RSpec.describe Raygatherer::Commands::Recording::List do
       it "outputs JSON when json: true" do
         manifest = {
           "entries" => [
-            { "name" => "1738950000", "start_time" => "2025-02-07T13:40:00+00:00",
-              "last_message_time" => "2025-02-07T15:30:00+00:00", "qmdl_size_bytes" => 134_963_200 }
+            {"name" => "1738950000", "start_time" => "2025-02-07T13:40:00+00:00",
+             "last_message_time" => "2025-02-07T15:30:00+00:00", "qmdl_size_bytes" => 134_963_200}
           ],
           "current_entry" => nil
         }

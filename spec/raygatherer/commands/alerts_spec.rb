@@ -38,8 +38,8 @@ RSpec.describe Raygatherer::Commands::Alerts do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
           metadata: {},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil] },
-            { "packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil]},
+            {"packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil]}
           ]
         })
 
@@ -51,9 +51,9 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "outputs no alerts message when only Informational events found" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Informational", "message" => "Info" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "Informational", "message" => "Info"}]}
           ]
         })
 
@@ -65,9 +65,9 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "extracts and displays Low severity alert with analyzer name" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Low", "message" => "Low severity issue" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "Low", "message" => "Low severity issue"}]}
           ]
         })
 
@@ -81,9 +81,9 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "extracts and displays Medium severity alert" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Medium", "message" => "Connection redirect" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "Medium", "message" => "Connection redirect"}]}
           ]
         })
 
@@ -96,9 +96,9 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "extracts and displays High severity alert" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Critical threat" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Critical threat"}]}
           ]
         })
 
@@ -111,11 +111,11 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "shows all alerts when multiple exist" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Low", "message" => "Low issue" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, { "event_type" => "High", "message" => "High issue" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Medium", "message" => "Medium issue" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "Low", "message" => "Low issue"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, {"event_type" => "High", "message" => "High issue"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "Medium", "message" => "Medium issue"}]}
           ]
         })
 
@@ -129,14 +129,14 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "handles multiple events in a single row" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }, { "name" => "Analyzer B" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}, {"name" => "Analyzer B"}]},
           rows: [
             {
               "packet_timestamp" => "2024-02-07T14:25:32Z",
               "events" => [
                 nil,
-                { "event_type" => "Low", "message" => "Low issue" },
-                { "event_type" => "Medium", "message" => "Medium issue" }
+                {"event_type" => "Low", "message" => "Low issue"},
+                {"event_type" => "Medium", "message" => "Medium issue"}
               ]
             }
           ]
@@ -153,11 +153,11 @@ RSpec.describe Raygatherer::Commands::Alerts do
     describe "--latest flag" do
       it "shows only alerts from the most recent packet_timestamp" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old high alert" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Latest low alert" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, { "event_type" => "Medium", "message" => "Middle medium alert" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Old high alert"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "Low", "message" => "Latest low alert"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, {"event_type" => "Medium", "message" => "Middle medium alert"}]}
           ]
         })
 
@@ -171,10 +171,10 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "exit code reflects latest message severity, not overall highest" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old high" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Latest low" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Old high"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "Low", "message" => "Latest low"}]}
           ]
         })
 
@@ -185,10 +185,10 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "--json --latest returns JSON array of latest alerts" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old high" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Latest low" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Old high"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "Low", "message" => "Latest low"}]}
           ]
         })
 
@@ -203,10 +203,10 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "returns no alerts when latest row has only Informational events" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old high" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Informational", "message" => "Info only" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Old high"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "Informational", "message" => "Info only"}]}
           ]
         })
 
@@ -220,11 +220,11 @@ RSpec.describe Raygatherer::Commands::Alerts do
     describe "--after flag" do
       it "shows only alerts after the given timestamp" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Low", "message" => "Before alert" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, { "event_type" => "Medium", "message" => "At boundary alert" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "High", "message" => "After alert" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "Low", "message" => "Before alert"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, {"event_type" => "Medium", "message" => "At boundary alert"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "High", "message" => "After alert"}]}
           ]
         })
 
@@ -241,11 +241,11 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "composes with --latest to show only the latest alert after the timestamp" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Before cutoff" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "After cutoff early" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:36Z", "events" => [nil, { "event_type" => "Medium", "message" => "After cutoff latest" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Before cutoff"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "Low", "message" => "After cutoff early"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:36Z", "events" => [nil, {"event_type" => "Medium", "message" => "After cutoff latest"}]}
           ]
         })
 
@@ -262,11 +262,11 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "--after --latest picks latest from filtered alerts, not all rows" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old alert" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "New alert" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:36Z", "events" => [nil, { "event_type" => "Informational", "message" => "Info only" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Old alert"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "Low", "message" => "New alert"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:36Z", "events" => [nil, {"event_type" => "Informational", "message" => "Info only"}]}
           ]
         })
 
@@ -284,10 +284,10 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "returns no alerts when all alerts are before the timestamp" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Old alert" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, { "event_type" => "Low", "message" => "Also old" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Old alert"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:33Z", "events" => [nil, {"event_type" => "Low", "message" => "Also old"}]}
           ]
         })
 
@@ -314,10 +314,10 @@ RSpec.describe Raygatherer::Commands::Alerts do
     describe "nil packet_timestamp" do
       it "excludes alerts with nil timestamp when --after is used" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => nil, "events" => [nil, { "event_type" => "High", "message" => "Nil timestamp alert" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Valid alert" }] }
+            {"packet_timestamp" => nil, "events" => [nil, {"event_type" => "High", "message" => "Nil timestamp alert"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "Low", "message" => "Valid alert"}]}
           ]
         })
 
@@ -333,10 +333,10 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "excludes alerts with nil timestamp when --latest is used" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => nil, "events" => [nil, { "event_type" => "High", "message" => "Nil timestamp alert" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Valid alert" }] }
+            {"packet_timestamp" => nil, "events" => [nil, {"event_type" => "High", "message" => "Nil timestamp alert"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "Low", "message" => "Valid alert"}]}
           ]
         })
 
@@ -352,11 +352,11 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
       it "handles mix of nil and non-nil timestamps with --after --latest" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
           rows: [
-            { "packet_timestamp" => nil, "events" => [nil, { "event_type" => "High", "message" => "Nil ts" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, { "event_type" => "Low", "message" => "Earlier" }] },
-            { "packet_timestamp" => "2024-02-07T14:25:36Z", "events" => [nil, { "event_type" => "Medium", "message" => "Latest valid" }] }
+            {"packet_timestamp" => nil, "events" => [nil, {"event_type" => "High", "message" => "Nil ts"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "Low", "message" => "Earlier"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:36Z", "events" => [nil, {"event_type" => "Medium", "message" => "Latest valid"}]}
           ]
         })
 
@@ -375,9 +375,9 @@ RSpec.describe Raygatherer::Commands::Alerts do
     describe "edge cases" do
       it "handles missing analyzer name gracefully" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-          metadata: { "analyzers" => [nil] },
+          metadata: {"analyzers" => [nil]},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Alert without analyzer" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Alert without analyzer"}]}
           ]
         })
 
@@ -392,7 +392,7 @@ RSpec.describe Raygatherer::Commands::Alerts do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({
           metadata: {},
           rows: [
-            { "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Low", "message" => "Alert no metadata" }] }
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "Low", "message" => "Alert no metadata"}]}
           ]
         })
 
@@ -459,8 +459,8 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
     it "uses JSON formatter when json: true" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
-        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Test alert" }] }]
+        metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
+        rows: [{"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Test alert"}]}]
       })
 
       described_class.run([],
@@ -497,8 +497,8 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
     it "JSON output goes to stdout (no colors, no emojis)" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
-        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "Test" }] }]
+        metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
+        rows: [{"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Test"}]}]
       })
 
       described_class.run([],
@@ -528,8 +528,8 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
     it "returns 0 when no alerts" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: { "analyzers" => [nil] },
-        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil] }]
+        metadata: {"analyzers" => [nil]},
+        rows: [{"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil]}]
       })
 
       exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
@@ -539,8 +539,8 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
     it "returns 10 for Low severity alert" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
-        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Low", "message" => "Low issue" }] }]
+        metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
+        rows: [{"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "Low", "message" => "Low issue"}]}]
       })
 
       exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
@@ -550,8 +550,8 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
     it "returns 11 for Medium severity alert" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
-        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "Medium", "message" => "Medium issue" }] }]
+        metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
+        rows: [{"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "Medium", "message" => "Medium issue"}]}]
       })
 
       exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
@@ -561,8 +561,8 @@ RSpec.describe Raygatherer::Commands::Alerts do
 
     it "returns 12 for High severity alert" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
-        metadata: { "analyzers" => [nil, { "name" => "Analyzer A" }] },
-        rows: [{ "packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, { "event_type" => "High", "message" => "High issue" }] }]
+        metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
+        rows: [{"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "High issue"}]}]
       })
 
       exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)

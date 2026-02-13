@@ -10,6 +10,7 @@ module Raygatherer
     module Recording
       class Download < Base
         include FormatHelpers
+
         EXTENSIONS = {
           qmdl: ".qmdl",
           pcap: ".pcap",
@@ -17,7 +18,7 @@ module Raygatherer
         }.freeze
 
         def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil)
-          super(argv, stdout: stdout, stderr: stderr, api_client: api_client)
+          super
           @format = nil
           @format_flags = []
           @download_dir = nil
@@ -130,7 +131,7 @@ module Raygatherer
           File.open(dest_path, "wb") do |file|
             @api_client.download_recording(name, format: @format, io: file)
           end
-        rescue StandardError
+        rescue
           File.delete(dest_path) if File.exist?(dest_path)
           raise
         end

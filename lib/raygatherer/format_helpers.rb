@@ -8,11 +8,11 @@ module Raygatherer
       if bytes < 1024
         "#{bytes} B"
       elsif bytes < 1024 * 1024
-        "#{Kernel.format('%.1f', bytes.to_f / 1024)} KB"
+        "#{Kernel.format("%.1f", bytes.to_f / 1024)} KB"
       elsif bytes < 1024 * 1024 * 1024
-        "#{Kernel.format('%.1f', bytes.to_f / (1024 * 1024))} MB"
+        "#{Kernel.format("%.1f", bytes.to_f / (1024 * 1024))} MB"
       else
-        "#{Kernel.format('%.1f', bytes.to_f / (1024 * 1024 * 1024))} GB"
+        "#{Kernel.format("%.1f", bytes.to_f / (1024 * 1024 * 1024))} GB"
       end
     end
   end

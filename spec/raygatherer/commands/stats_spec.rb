@@ -29,10 +29,10 @@ RSpec.describe Raygatherer::Commands::Stats do
     describe "fetching and displaying stats" do
       let(:stats) do
         {
-          "disk_stats" => { "total_size" => "128G", "used_size" => "64G",
-                            "used_percent" => "50%", "mounted_on" => "/data" },
-          "memory_stats" => { "total" => "28.3M", "used" => "15.1M", "free" => "13.2M" },
-          "runtime_metadata" => { "rayhunter_version" => "1.2.3", "system_os" => "Linux 3.18.48", "arch" => "armv7l" }
+          "disk_stats" => {"total_size" => "128G", "used_size" => "64G",
+                           "used_percent" => "50%", "mounted_on" => "/data"},
+          "memory_stats" => {"total" => "28.3M", "used" => "15.1M", "free" => "13.2M"},
+          "runtime_metadata" => {"rayhunter_version" => "1.2.3", "system_os" => "Linux 3.18.48", "arch" => "armv7l"}
         }
       end
 

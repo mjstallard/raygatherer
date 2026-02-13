@@ -33,7 +33,7 @@ module Raygatherer
 
     def default_config_path(env)
       xdg_home = env["XDG_CONFIG_HOME"]
-      base = xdg_home && !xdg_home.empty? ? xdg_home : File.join(Dir.home, ".config")
+      base = (xdg_home && !xdg_home.empty?) ? xdg_home : File.join(Dir.home, ".config")
       File.join(base, "raygatherer", "config.yml")
     end
   end
