@@ -2,8 +2,6 @@ PATH
   remote: .
   specs:
     raygatherer (0.1.0)
-      colorize (~> 1.1)
-      httparty (~> 0.21)
 
 GEM
   remote: https://rubygems.org/
@@ -11,27 +9,18 @@ GEM
     addressable (2.8.8)
       public_suffix (>= 2.0.2, < 8.0)
     bigdecimal (4.0.1)
-    colorize (1.1.0)
     crack (1.0.1)
       bigdecimal
       rexml
-    csv (3.3.5)
     date (3.4.1)
     diff-lcs (1.6.2)
     erb (5.0.1)
     hashdiff (1.2.1)
-    httparty (0.24.2)
-      csv
-      mini_mime (>= 1.0.0)
-      multi_xml (>= 0.5.2)
     io-console (0.8.0)
     irb (1.15.2)
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    mini_mime (1.1.5)
-    multi_xml (0.8.1)
-      bigdecimal (>= 3.1, < 5)
     pp (0.6.2)
       prettyprint
     prettyprint (0.2.0)
