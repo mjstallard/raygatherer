@@ -27,11 +27,17 @@ module Raygatherer
 
     def run
       # Extract global flags BEFORE processing
-      @verbose = @argv.delete("--verbose") ? true : false
-      @json = @argv.delete("--json") ? true : false
-      @host = extract_value_flag("--host")
-      @username = extract_value_flag("--basic-auth-user")
-      @password = extract_value_flag("--basic-auth-password")
+      cli_verbose = @argv.delete("--verbose") ? true : nil
+      cli_json = @argv.delete("--json") ? true : nil
+      cli_host = extract_value_flag("--host")
+      cli_username = extract_value_flag("--basic-auth-user")
+      cli_password = extract_value_flag("--basic-auth-password")
+
+      @verbose = cli_verbose || false
+      @json = cli_json || false
+      @host = cli_host
+      @username = cli_username
+      @password = cli_password
 
       if @argv.empty?
         show_help
