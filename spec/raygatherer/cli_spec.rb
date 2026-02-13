@@ -1,9 +1,16 @@
 # frozen_string_literal: true
 
+require_relative "../../lib/raygatherer/config"
+
 RSpec.describe Raygatherer::CLI do
   describe ".run" do
     let(:stdout) { StringIO.new }
     let(:stderr) { StringIO.new }
+    let(:empty_config) { instance_double(Raygatherer::Config, load: {}) }
+
+    before do
+      allow(Raygatherer::Config).to receive(:new).and_return(empty_config)
+    end
 
     describe "--version flag" do
       it "outputs the version" do
@@ -448,6 +455,113 @@ RSpec.describe Raygatherer::CLI do
           api_client: api_client,
           json: true
         )
+      end
+    end
+
+    describe "config file integration" do
+      it "uses config values when no CLI flags provided" do
+        config = instance_double(Raygatherer::Config, load: {
+          "host" => "http://config-host",
+          "basic_auth_user" => "config-user",
+          "basic_auth_password" => "config-pass",
+          "json" => true,
+          "verbose" => true
+        })
+        allow(Raygatherer::Config).to receive(:new).and_return(config)
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Alerts).to receive(:run).and_return(0)
+
+        described_class.run(["alerts"], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://config-host", username: "config-user", password: "config-pass",
+          verbose: true, stderr: stderr
+        )
+        expect(Raygatherer::Commands::Alerts).to have_received(:run).with(
+          [],
+          stdout: stdout,
+          stderr: stderr,
+          api_client: api_client,
+          json: true
+        )
+      end
+
+      it "CLI flags override config values" do
+        config = instance_double(Raygatherer::Config, load: {
+          "host" => "http://config-host",
+          "basic_auth_user" => "config-user",
+          "basic_auth_password" => "config-pass",
+          "json" => true,
+          "verbose" => true
+        })
+        allow(Raygatherer::Config).to receive(:new).and_return(config)
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Alerts).to receive(:run).and_return(0)
+
+        described_class.run([
+          "alerts",
+          "--host", "http://cli-host",
+          "--basic-auth-user", "cli-user",
+          "--basic-auth-password", "cli-pass"
+        ], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://cli-host", username: "cli-user", password: "cli-pass",
+          verbose: true, stderr: stderr
+        )
+      end
+
+      it "boolean CLI flag --json overrides json: false in config" do
+        config = instance_double(Raygatherer::Config, load: {
+          "host" => "http://config-host",
+          "json" => false
+        })
+        allow(Raygatherer::Config).to receive(:new).and_return(config)
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Alerts).to receive(:run).and_return(0)
+
+        described_class.run(["alerts", "--json"], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Alerts).to have_received(:run).with(
+          [],
+          stdout: stdout,
+          stderr: stderr,
+          api_client: api_client,
+          json: true
+        )
+      end
+
+      it "partial config with CLI --host works" do
+        config = instance_double(Raygatherer::Config, load: {
+          "basic_auth_user" => "config-user"
+        })
+        allow(Raygatherer::Config).to receive(:new).and_return(config)
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Alerts).to receive(:run).and_return(0)
+
+        described_class.run(["alerts", "--host", "http://cli-host"], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::ApiClient).to have_received(:new).with(
+          "http://cli-host", username: "config-user", password: nil,
+          verbose: false, stderr: stderr
+        )
+      end
+
+      it "invalid config file returns error message on stderr and exit 1" do
+        config = instance_double(Raygatherer::Config)
+        allow(config).to receive(:load).and_raise(
+          Raygatherer::Config::ConfigError, "Could not parse config file /path/config.yml: bad yaml"
+        )
+        allow(Raygatherer::Config).to receive(:new).and_return(config)
+
+        exit_code = described_class.run(["alerts", "--host", "http://test"], stdout: stdout, stderr: stderr)
+
+        expect(stderr.string).to include("Could not parse config file")
+        expect(exit_code).to eq(1)
       end
     end
   end

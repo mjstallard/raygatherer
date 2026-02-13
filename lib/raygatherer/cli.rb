@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "optparse"
+require_relative "config"
 
 module Raygatherer
   class CLI
@@ -14,14 +15,15 @@ module Raygatherer
       end
     end
 
-    def self.run(argv, stdout: $stdout, stderr: $stderr)
-      new(argv, stdout: stdout, stderr: stderr).run
+    def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
+      new(argv, stdout: stdout, stderr: stderr, config: config).run
     end
 
-    def initialize(argv, stdout: $stdout, stderr: $stderr)
+    def initialize(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
       @argv = argv
       @stdout = stdout
       @stderr = stderr
+      @config = config
       @verbose = false
     end
 
@@ -33,11 +35,13 @@ module Raygatherer
       cli_username = extract_value_flag("--basic-auth-user")
       cli_password = extract_value_flag("--basic-auth-password")
 
-      @verbose = cli_verbose || false
-      @json = cli_json || false
-      @host = cli_host
-      @username = cli_username
-      @password = cli_password
+      config_values = @config.load
+
+      @verbose = cli_verbose.nil? ? (config_values["verbose"] || false) : cli_verbose
+      @json = cli_json.nil? ? (config_values["json"] || false) : cli_json
+      @host = cli_host || config_values["host"]
+      @username = cli_username || config_values["basic_auth_user"]
+      @password = cli_password || config_values["basic_auth_password"]
 
       if @argv.empty?
         show_help
@@ -138,6 +142,9 @@ module Raygatherer
       # Unknown command
       @stderr.puts "Unknown command: #{[command, subcommand].compact.join(' ')}"
       show_help(@stderr)
+      1
+    rescue Config::ConfigError => e
+      @stderr.puts "Error: #{e.message}"
       1
     rescue OptionParser::InvalidOption => e
       @stderr.puts e.message
