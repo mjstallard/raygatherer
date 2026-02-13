@@ -38,6 +38,14 @@ RSpec.describe Raygatherer::CLI do
         expect(exit_code).to eq(0)
       end
 
+      it "shows Configuration section with config file path" do
+        described_class.run(["--help"], stdout: stdout, stderr: stderr)
+
+        expect(stdout.string).to include("Configuration:")
+        expect(stdout.string).to include("config.yml")
+        expect(stdout.string).to include("XDG_CONFIG_HOME")
+      end
+
       it "uses short form -h" do
         exit_code = described_class.run(["-h"], stdout: stdout, stderr: stderr)
 

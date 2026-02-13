@@ -453,6 +453,16 @@ RSpec.describe "CLI Integration" do
     end
   end
 
+  describe "raygatherer help includes Configuration section" do
+    it "shows Configuration section with config file path" do
+      stdout, stderr, status = Open3.capture3(exe_path, "--help")
+
+      expect(stdout).to include("Configuration:")
+      expect(stdout).to include("config.yml")
+      expect(status.exitstatus).to eq(0)
+    end
+  end
+
   describe "raygatherer exit codes" do
     it "returns exit code 1 when --host is missing" do
       stdout, stderr, status = Open3.capture3(

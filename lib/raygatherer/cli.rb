@@ -219,6 +219,14 @@ module Raygatherer
       output.puts "    recording start                  Start a new recording"
       output.puts "    stats                            Show device system stats"
       output.puts ""
+      output.puts "Configuration:"
+      output.puts "    Config file: ~/.config/raygatherer/config.yml"
+      output.puts "    (or $XDG_CONFIG_HOME/raygatherer/config.yml)"
+      output.puts ""
+      output.puts "    Supported keys: host, basic_auth_user, basic_auth_password, json, verbose"
+      output.puts "    CLI flags always override config file values."
+      output.puts "    Note: config file may contain credentials; consider restricting file permissions."
+      output.puts ""
       output.puts "Run 'raygatherer COMMAND --help' for more information on a command."
     end
   end
