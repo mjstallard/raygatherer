@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 require "time"
+require_relative "../format_helpers"
 
 module Raygatherer
   module Formatters
     class RecordingListHuman
+      include FormatHelpers
       def format(manifest)
         entries = manifest["entries"] || []
         current = manifest["current_entry"]
@@ -65,19 +67,6 @@ module Raygatherer
         Time.parse(time_string).strftime("%Y-%m-%d %H:%M:%S")
       end
 
-      def format_size(bytes)
-        return "0 B" unless bytes
-
-        if bytes < 1024
-          "#{bytes} B"
-        elsif bytes < 1024 * 1024
-          "#{Kernel.format('%.1f', bytes.to_f / 1024)} KB"
-        elsif bytes < 1024 * 1024 * 1024
-          "#{Kernel.format('%.1f', bytes.to_f / (1024 * 1024))} MB"
-        else
-          "#{Kernel.format('%.1f', bytes.to_f / (1024 * 1024 * 1024))} GB"
-        end
-      end
     end
   end
 end

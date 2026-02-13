@@ -2,12 +2,14 @@
 
 require "optparse"
 require_relative "../base"
+require_relative "../../format_helpers"
 require_relative "../../spinner"
 
 module Raygatherer
   module Commands
     module Recording
       class Download < Base
+        include FormatHelpers
         EXTENSIONS = {
           qmdl: ".qmdl",
           pcap: ".pcap",
@@ -131,18 +133,6 @@ module Raygatherer
         rescue StandardError
           File.delete(dest_path) if File.exist?(dest_path)
           raise
-        end
-
-        def format_size(bytes)
-          if bytes < 1024
-            "#{bytes} B"
-          elsif bytes < 1024 * 1024
-            "#{(bytes / 1024.0).round(1)} KB"
-          elsif bytes < 1024 * 1024 * 1024
-            "#{(bytes / (1024.0 * 1024)).round(1)} MB"
-          else
-            "#{(bytes / (1024.0 * 1024 * 1024)).round(1)} GB"
-          end
         end
 
         def show_help(output = @stdout)
