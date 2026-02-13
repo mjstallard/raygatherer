@@ -594,6 +594,37 @@ RSpec.describe Raygatherer::ApiClient do
     end
   end
 
+  describe "URL-encoding recording names" do
+    it "URL-encodes recording name with spaces in download path" do
+      stub_request(:get, "#{host}/api/qmdl/my+recording")
+        .to_return(status: 200, body: "data")
+
+      io = StringIO.new
+      client.download_recording("my recording", format: :qmdl, io: io)
+
+      expect(WebMock).to have_requested(:get, "#{host}/api/qmdl/my+recording")
+    end
+
+    it "URL-encodes recording name with special chars in delete path" do
+      stub_request(:post, "#{host}/api/delete-recording/foo%2Fbar%3Fbaz")
+        .to_return(status: 202, body: "")
+
+      client.delete_recording("foo/bar?baz")
+
+      expect(WebMock).to have_requested(:post, "#{host}/api/delete-recording/foo%2Fbar%3Fbaz")
+    end
+
+    it "numeric names are unchanged by encoding" do
+      stub_request(:get, "#{host}/api/qmdl/1738950000")
+        .to_return(status: 200, body: "data")
+
+      io = StringIO.new
+      client.download_recording("1738950000", format: :qmdl, io: io)
+
+      expect(WebMock).to have_requested(:get, "#{host}/api/qmdl/1738950000")
+    end
+  end
+
   describe "#stop_recording" do
     it "POSTs to the stop recording endpoint" do
       stub_request(:post, "#{host}/api/stop-recording")

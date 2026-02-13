@@ -46,16 +46,17 @@ module Raygatherer
     end
 
     def download_recording(name, format: :qmdl, io:)
+      encoded = URI.encode_www_form_component(name)
       path = case format
-             when :qmdl then "/api/qmdl/#{name}"
-             when :pcap then "/api/pcap/#{name}"
-             when :zip  then "/api/zip/#{name}"
+             when :qmdl then "/api/qmdl/#{encoded}"
+             when :pcap then "/api/pcap/#{encoded}"
+             when :zip  then "/api/zip/#{encoded}"
              end
       stream_to(path, io)
     end
 
     def delete_recording(name)
-      post("/api/delete-recording/#{name}")
+      post("/api/delete-recording/#{URI.encode_www_form_component(name)}")
     end
 
     def stop_recording
