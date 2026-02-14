@@ -942,4 +942,61 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result["queued"]).to eq(["rec1"])
     end
   end
+
+  describe "#fetch_config" do
+    let(:config_response) do
+      {
+        "qmdl_store_path" => "/data/rayhunter",
+        "port" => 8080,
+        "readonly_port" => 8081,
+        "notification_url" => nil,
+        "analyzers" => {
+          "null_cipher" => true,
+          "imsi_catcher" => true
+        }
+      }
+    end
+
+    it "parses JSON config from /api/config" do
+      stub_request(:get, "#{host}/api/config")
+        .to_return(status: 200, body: ::JSON.generate(config_response))
+
+      result = client.fetch_config
+
+      expect(result["port"]).to eq(8080)
+      expect(result["analyzers"]["null_cipher"]).to be true
+    end
+
+    it "handles HTTP errors" do
+      stub_request(:get, "#{host}/api/config")
+        .to_return(status: 500, body: "Internal Server Error")
+
+      expect { client.fetch_config }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 500/
+      )
+    end
+
+    it "handles connection errors" do
+      stub_request(:get, "#{host}/api/config")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.fetch_config }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+
+    it "sends basic auth credentials when configured" do
+      auth_client = described_class.new(host, username: "user", password: "pass")
+
+      stub_request(:get, "#{host}/api/config")
+        .with(basic_auth: ["user", "pass"])
+        .to_return(status: 200, body: ::JSON.generate(config_response))
+
+      result = auth_client.fetch_config
+
+      expect(result["port"]).to eq(8080)
+    end
+  end
 end
