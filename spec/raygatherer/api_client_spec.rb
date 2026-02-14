@@ -873,4 +873,73 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result["queued"]).to eq(["rec1", "rec2"])
     end
   end
+
+  describe "#start_analysis" do
+    let(:analysis_status_response) do
+      ::JSON.generate({
+        "queued" => ["rec1"],
+        "running" => nil,
+        "finished" => []
+      })
+    end
+
+    it "POSTs to /api/analysis/{name} and returns parsed status" do
+      stub_request(:post, "#{host}/api/analysis/my_recording")
+        .to_return(status: 202, body: analysis_status_response)
+
+      result = client.start_analysis("my_recording")
+
+      expect(result["queued"]).to eq(["rec1"])
+    end
+
+    it "URL-encodes the recording name" do
+      stub_request(:post, "#{host}/api/analysis/my+recording")
+        .to_return(status: 202, body: analysis_status_response)
+
+      result = client.start_analysis("my recording")
+
+      expect(result["queued"]).to eq(["rec1"])
+    end
+
+    it "POSTs to /api/analysis/ with empty name for all recordings" do
+      stub_request(:post, "#{host}/api/analysis/")
+        .to_return(status: 202, body: analysis_status_response)
+
+      result = client.start_analysis("")
+
+      expect(result["queued"]).to eq(["rec1"])
+    end
+
+    it "raises ApiError on non-202 response" do
+      stub_request(:post, "#{host}/api/analysis/my_recording")
+        .to_return(status: 400, body: "Bad Request")
+
+      expect { client.start_analysis("my_recording") }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 400/
+      )
+    end
+
+    it "raises ConnectionError on connection failure" do
+      stub_request(:post, "#{host}/api/analysis/my_recording")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.start_analysis("my_recording") }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+
+    it "sends basic auth credentials when configured" do
+      auth_client = described_class.new(host, username: "user", password: "pass")
+
+      stub_request(:post, "#{host}/api/analysis/my_recording")
+        .with(basic_auth: ["user", "pass"])
+        .to_return(status: 202, body: analysis_status_response)
+
+      result = auth_client.start_analysis("my_recording")
+
+      expect(result["queued"]).to eq(["rec1"])
+    end
+  end
 end
