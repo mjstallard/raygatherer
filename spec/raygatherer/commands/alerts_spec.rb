@@ -372,6 +372,102 @@ RSpec.describe Raygatherer::Commands::Alerts do
       end
     end
 
+    describe "--recording flag" do
+      it "fetches analysis report for a named recording" do
+        allow(api_client).to receive(:fetch_analysis_report).with("my_recording").and_return({
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
+          rows: [
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "Low", "message" => "Test alert"}]}
+          ]
+        })
+
+        exit_code = described_class.run(
+          ["--recording", "my_recording"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stdout.string).to include("Test alert")
+        expect(exit_code).to eq(10)
+      end
+
+      it "uses fetch_live_analysis_report when --recording is not provided" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return({
+          metadata: {},
+          rows: []
+        })
+
+        described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
+
+        expect(api_client).to have_received(:fetch_live_analysis_report)
+      end
+
+      it "composes with --latest" do
+        allow(api_client).to receive(:fetch_analysis_report).with("rec1").and_return({
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
+          rows: [
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "High", "message" => "Old alert"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "Low", "message" => "Latest alert"}]}
+          ]
+        })
+
+        exit_code = described_class.run(
+          ["--recording", "rec1", "--latest"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stdout.string).to include("Latest alert")
+        expect(stdout.string).not_to include("Old alert")
+        expect(exit_code).to eq(10)
+      end
+
+      it "composes with --after" do
+        allow(api_client).to receive(:fetch_analysis_report).with("rec1").and_return({
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
+          rows: [
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "Low", "message" => "Before alert"}]},
+            {"packet_timestamp" => "2024-02-07T14:25:34Z", "events" => [nil, {"event_type" => "High", "message" => "After alert"}]}
+          ]
+        })
+
+        exit_code = described_class.run(
+          ["--recording", "rec1", "--after", "2024-02-07T14:25:33Z"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stdout.string).to include("After alert")
+        expect(stdout.string).not_to include("Before alert")
+        expect(exit_code).to eq(12)
+      end
+
+      it "composes with --json" do
+        allow(api_client).to receive(:fetch_analysis_report).with("rec1").and_return({
+          metadata: {"analyzers" => [nil, {"name" => "Analyzer A"}]},
+          rows: [
+            {"packet_timestamp" => "2024-02-07T14:25:32Z", "events" => [nil, {"event_type" => "Low", "message" => "Test alert"}]}
+          ]
+        })
+
+        exit_code = described_class.run(
+          ["--recording", "rec1"],
+          stdout: stdout, stderr: stderr, api_client: api_client, json: true
+        )
+
+        parsed = ::JSON.parse(stdout.string.strip)
+        expect(parsed).to be_an(Array)
+        expect(parsed.length).to eq(1)
+        expect(parsed[0]["message"]).to eq("Test alert")
+        expect(exit_code).to eq(10)
+      end
+
+      it "shows --recording in help text" do
+        expect do
+          described_class.run(["--help"], stdout: stdout, stderr: stderr)
+        end.to raise_error(Raygatherer::CLI::EarlyExit)
+
+        expect(stdout.string).to include("--recording")
+      end
+    end
+
     describe "edge cases" do
       it "handles missing analyzer name gracefully" do
         allow(api_client).to receive(:fetch_live_analysis_report).and_return({

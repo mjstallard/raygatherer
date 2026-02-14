@@ -20,13 +20,18 @@ module Raygatherer
         @json = json
         @latest = false
         @after = nil
+        @recording = nil
       end
 
       def run
         with_error_handling do
           parse_options
 
-          data = @api_client.fetch_live_analysis_report
+          data = if @recording
+            @api_client.fetch_analysis_report(@recording)
+          else
+            @api_client.fetch_live_analysis_report
+          end
           alerts = extract_alerts(data[:rows], data[:metadata])
           alerts = filter_after(alerts) if @after
           alerts = filter_latest(alerts, data[:rows]) if @latest
@@ -47,6 +52,10 @@ module Raygatherer
           opts.banner = "Usage: raygatherer alerts [options]"
           opts.separator ""
           opts.separator "Options:"
+
+          opts.on("--recording NAME", "Analyze a past recording instead of live") do |name|
+            @recording = name
+          end
 
           opts.on("--latest", "Show only alerts from the most recent message") do
             @latest = true
@@ -116,6 +125,7 @@ module Raygatherer
         output.puts "Usage: raygatherer [global options] alerts [options]"
         output.puts ""
         output.puts "Options:"
+        output.puts "    --recording NAME                 Analyze a past recording instead of live"
         output.puts "    --after TIMESTAMP                Show only alerts after this time (ISO 8601, exclusive)"
         output.puts "    --latest                         Show only alerts from the most recent message"
         output.puts "    -h, --help                       Show this help message"
