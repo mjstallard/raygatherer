@@ -98,11 +98,13 @@ RSpec.describe Raygatherer::Config do
     end
 
     it "defaults to ~/.config when XDG_CONFIG_HOME is not set" do
-      config = described_class.new(env: {})
+      Dir.mktmpdir do |dir|
+        allow(Dir).to receive(:home).and_return(dir)
+        config = described_class.new(env: {})
 
-      File.join(Dir.home, ".config", "raygatherer", "config.yml")
-      # File won't exist, so should return empty hash
-      expect(config.load).to eq({})
+        # No config file in temp home, so should return empty hash
+        expect(config.load).to eq({})
+      end
     end
 
     it "returns empty hash for empty file" do
