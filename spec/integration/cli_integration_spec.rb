@@ -522,6 +522,46 @@ RSpec.describe "CLI Integration" do
     end
   end
 
+  describe "raygatherer config set" do
+    it "requires --host flag" do
+      _, stderr, status = Open3.capture3(@clean_env, exe_path, "config", "set")
+
+      expect(stderr).to include("--host is required")
+      expect(stderr).to include("Usage:")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "shows help with --help" do
+      stdout, stderr, status = Open3.capture3(@clean_env, exe_path, "config", "set", "--help")
+
+      expect(stdout).to include("Usage:")
+      expect(stdout).to include("config set")
+      expect(stderr).to be_empty
+      expect(status.exitstatus).to eq(0)
+    end
+
+    it "reports error when stdin is empty" do
+      stdin_data = ""
+      _, stderr, status = Open3.capture3(
+        @clean_env,
+        exe_path, "config", "set", "--host", "http://localhost:9999",
+        stdin_data: stdin_data
+      )
+
+      expect(stderr).to include("no JSON input received")
+      expect(status.exitstatus).to eq(1)
+    end
+  end
+
+  describe "raygatherer help includes config set" do
+    it "shows config set in help output" do
+      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
+
+      expect(stdout).to include("config set")
+      expect(status.exitstatus).to eq(0)
+    end
+  end
+
   describe "raygatherer help includes config show" do
     it "shows config show in help output" do
       stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")

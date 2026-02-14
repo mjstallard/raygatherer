@@ -73,6 +73,10 @@ module Raygatherer
       end
     end
 
+    def set_config(json_body)
+      post("/api/config", body: json_body, content_type: "application/json")
+    end
+
     def download_recording(name, io:, format: :qmdl)
       encoded = URI.encode_www_form_component(name)
       path = case format
@@ -116,18 +120,19 @@ module Raygatherer
       raise
     end
 
-    def post(path, expected_code: "202")
+    def post(path, expected_code: "202", body: nil, content_type: nil)
       ok_status_text = (expected_code == "202") ? "Accepted" : "OK"
-      response, body = request(:post, path, ok_code: expected_code, ok_status_text: ok_status_text)
+      response, resp_body = request(:post, path, ok_code: expected_code,
+        ok_status_text: ok_status_text, body: body, content_type: content_type)
 
       unless response.code == expected_code
-        raise ApiError, server_error_message(response, body)
+        raise ApiError, server_error_message(response, resp_body)
       end
 
-      body
+      resp_body
     end
 
-    def request(method, path, ok_code:, ok_status_text:)
+    def request(method, path, ok_code:, ok_status_text:, body: nil, content_type: nil)
       url = "#{@host}#{path}"
       uri = URI.parse(url)
 
@@ -145,6 +150,10 @@ module Raygatherer
       when :post then Net::HTTP::Post.new(uri.request_uri)
       end
       req.basic_auth(@username, @password) if @username && @password
+      if body
+        req.body = body
+        req["Content-Type"] = content_type if content_type
+      end
 
       response = http.request(req)
 

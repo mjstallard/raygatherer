@@ -999,4 +999,52 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result["port"]).to eq(8080)
     end
   end
+
+  describe "#set_config" do
+    let(:config_json) { '{"port":9090}' }
+
+    it "POSTs JSON body to /api/config" do
+      stub_request(:post, "#{host}/api/config")
+        .with(
+          body: config_json,
+          headers: {"Content-Type" => "application/json"}
+        )
+        .to_return(status: 202, body: "")
+
+      client.set_config(config_json)
+
+      expect(WebMock).to have_requested(:post, "#{host}/api/config")
+        .with(body: config_json)
+    end
+
+    it "raises ApiError on non-202 response" do
+      stub_request(:post, "#{host}/api/config")
+        .to_return(status: 400, body: "Invalid config")
+
+      expect { client.set_config(config_json) }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 400/
+      )
+    end
+
+    it "raises ConnectionError on connection failure" do
+      stub_request(:post, "#{host}/api/config")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.set_config(config_json) }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+
+    it "sends basic auth credentials when configured" do
+      auth_client = described_class.new(host, username: "user", password: "pass")
+
+      stub_request(:post, "#{host}/api/config")
+        .with(basic_auth: ["user", "pass"])
+        .to_return(status: 202, body: "")
+
+      auth_client.set_config(config_json)
+    end
+  end
 end
