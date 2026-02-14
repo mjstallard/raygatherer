@@ -23,7 +23,7 @@ Raygatherer: Ruby CLI for fetching and displaying alerts from Rayhunter (cell to
 - Formatters always receive and return arrays (even when empty)
 - JSON output is always a JSON array
 - Exit codes encode alert severity for scripting use (see `show_help` in status.rb)
-- No RuboCop configured
+- Linter: `bundle exec standardrb` (Ruby Standard Style). Write new code in standardrb style to avoid rework.
 
 # ROLE AND EXPERTISE
 
@@ -60,8 +60,8 @@ You are a senior software engineer who follows Kent Beck's Test-Driven Developme
 # COMMIT DISCIPLINE
 
 - Only commit when:
-  1. ALL tests are passing
-  2. ALL compiler/linter warnings have been resolved
+  1. ALL tests are passing (`bundle exec rspec`)
+  2. ALL standardrb issues are resolved (`bundle exec standardrb`); fix any issues before committing
   3. The change represents a single logical unit of work
   4. Commit messages clearly state whether the commit contains structural or behavioral changes
 - Use small, frequent commits rather than large, infrequent ones
@@ -90,10 +90,11 @@ When approaching a new feature:
 1. Write a simple failing test for a small part of the feature
 2. Implement the bare minimum to make it pass
 3. Run tests to confirm they pass (Green)
-4. Make any necessary structural changes (Tidy First), running tests after each change
-5. Commit structural changes separately
-6. Add another test for the next small increment of functionality
-7. Repeat until the feature is complete, committing behavioral changes separately from structural ones
+4. Run `bundle exec standardrb` and fix any issues
+5. Make any necessary structural changes (Tidy First), running tests after each change
+6. Commit structural changes separately
+7. Add another test for the next small increment of functionality
+8. Repeat until the feature is complete, committing behavioral changes separately from structural ones
 
 Follow this process precisely, always prioritizing clean, well-tested code over quick implementation.
 
