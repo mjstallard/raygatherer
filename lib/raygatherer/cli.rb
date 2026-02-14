@@ -24,7 +24,8 @@ module Raygatherer
       ["recording", "stop"] => {file: "commands/recording/stop", klass: "Commands::Recording::Stop", json: false},
       ["recording", "start"] => {file: "commands/recording/start", klass: "Commands::Recording::Start", json: false},
       ["analysis", "status"] => {file: "commands/analysis/status", klass: "Commands::Analysis::Status", json: true},
-      ["analysis", "run"] => {file: "commands/analysis/run", klass: "Commands::Analysis::Run", json: true}
+      ["analysis", "run"] => {file: "commands/analysis/run", klass: "Commands::Analysis::Run", json: true},
+      ["config", "show"] => {file: "commands/config/show", klass: "Commands::Config::Show", json: true}
     }.freeze
 
     def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
@@ -171,6 +172,7 @@ module Raygatherer
       output.puts "    analysis status                   Show analysis queue status"
       output.puts "    analysis run <name>               Queue a recording for analysis"
       output.puts "    analysis run --all                Queue all recordings for analysis"
+      output.puts "    config show                       Show device configuration"
       output.puts "    stats                            Show device system stats"
       output.puts ""
       output.puts "Configuration:"

@@ -373,6 +373,39 @@ RSpec.describe Raygatherer::CLI do
         )
       end
 
+      it "routes 'config show' to Commands::Config::Show" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Config::Show).to receive(:run).and_return(0)
+
+        exit_code = described_class.run(["config", "show", "--host", "http://test"], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Config::Show).to have_received(:run).with(
+          [],
+          stdout: stdout,
+          stderr: stderr,
+          api_client: api_client,
+          json: false
+        )
+        expect(exit_code).to eq(0)
+      end
+
+      it "passes --json to config show command" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Config::Show).to receive(:run).and_return(0)
+
+        described_class.run(["--json", "config", "show", "--host", "http://test"], stdout: stdout, stderr: stderr)
+
+        expect(Raygatherer::Commands::Config::Show).to have_received(:run).with(
+          [],
+          stdout: stdout,
+          stderr: stderr,
+          api_client: api_client,
+          json: true
+        )
+      end
+
       it "passes --verbose to stats command" do
         api_client = instance_double(Raygatherer::ApiClient)
         allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
