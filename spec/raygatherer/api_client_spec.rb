@@ -749,4 +749,65 @@ RSpec.describe Raygatherer::ApiClient do
       auth_client.start_recording
     end
   end
+
+  describe "#fetch_analysis_report" do
+    let(:ndjson_response) do
+      <<~NDJSON.chomp
+        {"analyzers":[{"name":"test","description":"Test analyzer","version":1}],"rayhunter":{},"report_version":2}
+        {"packet_timestamp":"2024-02-07T14:25:32Z","events":[null,{"event_type":"Medium","message":"Connection redirect"}]}
+      NDJSON
+    end
+
+    it "parses NDJSON response from /api/analysis-report/{name}" do
+      stub_request(:get, "#{host}/api/analysis-report/my_recording")
+        .to_return(status: 200, body: ndjson_response)
+
+      result = client.fetch_analysis_report("my_recording")
+
+      expect(result).to have_key(:metadata)
+      expect(result).to have_key(:rows)
+      expect(result[:rows].length).to eq(1)
+    end
+
+    it "URL-encodes the recording name" do
+      stub_request(:get, "#{host}/api/analysis-report/my+recording")
+        .to_return(status: 200, body: ndjson_response)
+
+      result = client.fetch_analysis_report("my recording")
+
+      expect(result).to have_key(:metadata)
+    end
+
+    it "handles HTTP errors" do
+      stub_request(:get, "#{host}/api/analysis-report/my_recording")
+        .to_return(status: 404, body: "Not Found")
+
+      expect { client.fetch_analysis_report("my_recording") }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 404/
+      )
+    end
+
+    it "handles connection errors" do
+      stub_request(:get, "#{host}/api/analysis-report/my_recording")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.fetch_analysis_report("my_recording") }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+
+    it "sends basic auth credentials when configured" do
+      auth_client = described_class.new(host, username: "user", password: "pass")
+
+      stub_request(:get, "#{host}/api/analysis-report/my_recording")
+        .with(basic_auth: ["user", "pass"])
+        .to_return(status: 200, body: ndjson_response)
+
+      result = auth_client.fetch_analysis_report("my_recording")
+
+      expect(result).to have_key(:metadata)
+    end
+  end
 end

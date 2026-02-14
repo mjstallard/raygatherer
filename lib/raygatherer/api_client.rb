@@ -27,6 +27,16 @@ module Raygatherer
       end
     end
 
+    def fetch_analysis_report(name)
+      encoded = URI.encode_www_form_component(name)
+      get("/api/analysis-report/#{encoded}") do |body|
+        log_verbose "Parsing NDJSON response..."
+        result = parse_ndjson(body)
+        log_verbose "Parsed successfully: metadata + #{result[:rows].length} rows"
+        result
+      end
+    end
+
     def fetch_manifest
       get("/api/qmdl-manifest") do |body|
         log_verbose "Parsing JSON response..."
