@@ -82,10 +82,11 @@ module Raygatherer
       raise
     end
 
-    def post(path)
-      response, body = request(:post, path, ok_code: "202", ok_status_text: "Accepted")
+    def post(path, expected_code: "202")
+      ok_status_text = (expected_code == "202") ? "Accepted" : "OK"
+      response, body = request(:post, path, ok_code: expected_code, ok_status_text: ok_status_text)
 
-      unless response.code == "202"
+      unless response.code == expected_code
         raise ApiError, server_error_message(response, body)
       end
 
