@@ -24,7 +24,7 @@ module Raygatherer
         raise ConfigError, "Config file must be a YAML mapping (key: value), got #{parsed.class}"
       end
 
-      parsed.select { |key, _| SUPPORTED_KEYS.include?(key) }
+      parsed.slice(*SUPPORTED_KEYS)
     rescue Psych::SyntaxError => e
       raise ConfigError, "Could not parse config file #{@config_path}: #{e.message}"
     end

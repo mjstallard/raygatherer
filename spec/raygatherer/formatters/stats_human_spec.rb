@@ -45,7 +45,7 @@ RSpec.describe Raygatherer::Formatters::StatsHuman do
     end
 
     it "omits battery line when battery_status is absent" do
-      stats = full_stats.reject { |k, _| k == "battery_status" }
+      stats = full_stats.except("battery_status")
 
       output = described_class.new.format(stats)
 

@@ -424,7 +424,7 @@ RSpec.describe Raygatherer::ApiClient do
     end
 
     it "handles optional battery_status" do
-      no_battery = stats_response.reject { |k, _| k == "battery_status" }
+      no_battery = stats_response.except("battery_status")
       stub_request(:get, "#{host}/api/system-stats")
         .to_return(status: 200, body: ::JSON.generate(no_battery))
 
