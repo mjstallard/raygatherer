@@ -22,7 +22,8 @@ module Raygatherer
       ["recording", "download"] => {file: "commands/recording/download", klass: "Commands::Recording::Download", json: false},
       ["recording", "delete"] => {file: "commands/recording/delete", klass: "Commands::Recording::Delete", json: false},
       ["recording", "stop"] => {file: "commands/recording/stop", klass: "Commands::Recording::Stop", json: false},
-      ["recording", "start"] => {file: "commands/recording/start", klass: "Commands::Recording::Start", json: false}
+      ["recording", "start"] => {file: "commands/recording/start", klass: "Commands::Recording::Start", json: false},
+      ["analysis", "status"] => {file: "commands/analysis/status", klass: "Commands::Analysis::Status", json: true}
     }.freeze
 
     def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
@@ -166,6 +167,7 @@ module Raygatherer
       output.puts "    recording delete <name>          Delete a recording from the device"
       output.puts "    recording stop                   Stop the current recording"
       output.puts "    recording start                  Start a new recording"
+      output.puts "    analysis status                   Show analysis queue status"
       output.puts "    stats                            Show device system stats"
       output.puts ""
       output.puts "Configuration:"
