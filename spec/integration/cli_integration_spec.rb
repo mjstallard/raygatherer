@@ -441,6 +441,50 @@ RSpec.describe "CLI Integration" do
     end
   end
 
+  describe "raygatherer analysis run" do
+    it "requires --host flag" do
+      _, stderr, status = Open3.capture3(@clean_env, exe_path, "analysis", "run", "myrecording")
+
+      expect(stderr).to include("--host is required")
+      expect(stderr).to include("Usage:")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "shows help with --help" do
+      stdout, stderr, status = Open3.capture3(@clean_env, exe_path, "analysis", "run", "--help")
+
+      expect(stdout).to include("Usage:")
+      expect(stdout).to include("analysis run")
+      expect(stdout).to include("--all")
+      expect(stderr).to be_empty
+      expect(status.exitstatus).to eq(0)
+    end
+
+    it "requires a name or --all" do
+      _, stderr, status = Open3.capture3(@clean_env, exe_path, "analysis", "run", "--host", "http://localhost:9999")
+
+      expect(stderr).to include("recording name or --all is required")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "handles connection errors gracefully" do
+      _, stderr, status = Open3.capture3(@clean_env, exe_path, "analysis", "run", "myrecording", "--host", "http://localhost:9999")
+
+      expect(stderr).to include("Error")
+      expect(stderr).to include("Failed to connect")
+      expect(status.exitstatus).to eq(1)
+    end
+  end
+
+  describe "raygatherer help includes analysis run" do
+    it "shows analysis run in help output" do
+      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
+
+      expect(stdout).to include("analysis run")
+      expect(status.exitstatus).to eq(0)
+    end
+  end
+
   describe "raygatherer help includes analysis status" do
     it "shows analysis status in help output" do
       stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")

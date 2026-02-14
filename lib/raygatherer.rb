@@ -22,6 +22,7 @@ require_relative "raygatherer/commands/recording/stop"
 require_relative "raygatherer/commands/recording/start"
 require_relative "raygatherer/commands/stats"
 require_relative "raygatherer/commands/analysis/status"
+require_relative "raygatherer/commands/analysis/run"
 
 module Raygatherer
   class Error < StandardError; end

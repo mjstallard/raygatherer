@@ -334,6 +334,45 @@ RSpec.describe Raygatherer::CLI do
         )
       end
 
+      it "routes 'analysis run' to Commands::Analysis::Run" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Analysis::Run).to receive(:run).and_return(0)
+
+        exit_code = described_class.run(
+          ["analysis", "run", "my_recording", "--host", "http://test"],
+          stdout: stdout, stderr: stderr
+        )
+
+        expect(Raygatherer::Commands::Analysis::Run).to have_received(:run).with(
+          ["my_recording"],
+          stdout: stdout,
+          stderr: stderr,
+          api_client: api_client,
+          json: false
+        )
+        expect(exit_code).to eq(0)
+      end
+
+      it "passes --json to analysis run command" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Analysis::Run).to receive(:run).and_return(0)
+
+        described_class.run(
+          ["--json", "analysis", "run", "my_recording", "--host", "http://test"],
+          stdout: stdout, stderr: stderr
+        )
+
+        expect(Raygatherer::Commands::Analysis::Run).to have_received(:run).with(
+          ["my_recording"],
+          stdout: stdout,
+          stderr: stderr,
+          api_client: api_client,
+          json: true
+        )
+      end
+
       it "passes --verbose to stats command" do
         api_client = instance_double(Raygatherer::ApiClient)
         allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
