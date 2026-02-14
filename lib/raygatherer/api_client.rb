@@ -46,6 +46,15 @@ module Raygatherer
       end
     end
 
+    def fetch_analysis_status
+      get("/api/analysis") do |body|
+        log_verbose "Parsing JSON response..."
+        result = parse_json(body)
+        log_verbose "Parsed successfully"
+        result
+      end
+    end
+
     def fetch_system_stats
       get("/api/system-stats") do |body|
         log_verbose "Parsing JSON response..."

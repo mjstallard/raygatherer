@@ -810,4 +810,67 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result).to have_key(:metadata)
     end
   end
+
+  describe "#fetch_analysis_status" do
+    let(:analysis_status_response) do
+      {
+        "queued" => ["rec1", "rec2"],
+        "running" => "rec3",
+        "finished" => ["rec4", "rec5"]
+      }
+    end
+
+    it "parses JSON response from /api/analysis" do
+      stub_request(:get, "#{host}/api/analysis")
+        .to_return(status: 200, body: ::JSON.generate(analysis_status_response))
+
+      result = client.fetch_analysis_status
+
+      expect(result["queued"]).to eq(["rec1", "rec2"])
+      expect(result["running"]).to eq("rec3")
+      expect(result["finished"]).to eq(["rec4", "rec5"])
+    end
+
+    it "handles null running field" do
+      response = analysis_status_response.merge("running" => nil)
+      stub_request(:get, "#{host}/api/analysis")
+        .to_return(status: 200, body: ::JSON.generate(response))
+
+      result = client.fetch_analysis_status
+
+      expect(result["running"]).to be_nil
+    end
+
+    it "handles HTTP errors" do
+      stub_request(:get, "#{host}/api/analysis")
+        .to_return(status: 500, body: "Internal Server Error")
+
+      expect { client.fetch_analysis_status }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 500/
+      )
+    end
+
+    it "handles connection errors" do
+      stub_request(:get, "#{host}/api/analysis")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.fetch_analysis_status }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+
+    it "sends basic auth credentials when configured" do
+      auth_client = described_class.new(host, username: "user", password: "pass")
+
+      stub_request(:get, "#{host}/api/analysis")
+        .with(basic_auth: ["user", "pass"])
+        .to_return(status: 200, body: ::JSON.generate(analysis_status_response))
+
+      result = auth_client.fetch_analysis_status
+
+      expect(result["queued"]).to eq(["rec1", "rec2"])
+    end
+  end
 end
