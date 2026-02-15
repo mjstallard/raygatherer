@@ -1047,4 +1047,45 @@ RSpec.describe Raygatherer::ApiClient do
       auth_client.set_config(config_json)
     end
   end
+
+  describe "#test_notification" do
+    it "POSTs to /api/test-notification and expects 200" do
+      stub_request(:post, "#{host}/api/test-notification")
+        .to_return(status: 200, body: "")
+
+      client.test_notification
+
+      expect(WebMock).to have_requested(:post, "#{host}/api/test-notification")
+    end
+
+    it "raises ApiError on 400 (no notification URL configured)" do
+      stub_request(:post, "#{host}/api/test-notification")
+        .to_return(status: 400, body: "No notification URL configured")
+
+      expect { client.test_notification }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /No notification URL configured/
+      )
+    end
+
+    it "raises ConnectionError on connection failure" do
+      stub_request(:post, "#{host}/api/test-notification")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.test_notification }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+
+    it "sends basic auth credentials when configured" do
+      auth_client = described_class.new(host, username: "user", password: "pass")
+
+      stub_request(:post, "#{host}/api/test-notification")
+        .with(basic_auth: ["user", "pass"])
+        .to_return(status: 200, body: "")
+
+      auth_client.test_notification
+    end
+  end
 end

@@ -73,6 +73,10 @@ module Raygatherer
       end
     end
 
+    def test_notification
+      post("/api/test-notification", expected_code: "200")
+    end
+
     def set_config(json_body)
       post("/api/config", body: json_body, content_type: "application/json")
     end

@@ -422,6 +422,25 @@ RSpec.describe Raygatherer::CLI do
         expect(exit_code).to eq(0)
       end
 
+      it "routes 'config test-notification' to Commands::Config::TestNotification" do
+        api_client = instance_double(Raygatherer::ApiClient)
+        allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
+        allow(Raygatherer::Commands::Config::TestNotification).to receive(:run).and_return(0)
+
+        exit_code = described_class.run(
+          ["config", "test-notification", "--host", "http://test"],
+          stdout: stdout, stderr: stderr
+        )
+
+        expect(Raygatherer::Commands::Config::TestNotification).to have_received(:run).with(
+          [],
+          stdout: stdout,
+          stderr: stderr,
+          api_client: api_client
+        )
+        expect(exit_code).to eq(0)
+      end
+
       it "passes --verbose to stats command" do
         api_client = instance_double(Raygatherer::ApiClient)
         allow(Raygatherer::ApiClient).to receive(:new).and_return(api_client)
