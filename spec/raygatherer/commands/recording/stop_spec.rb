@@ -6,25 +6,7 @@ RSpec.describe Raygatherer::Commands::Recording::Stop do
     let(:stderr) { StringIO.new }
     let(:api_client) { instance_double(Raygatherer::ApiClient) }
 
-    describe "--help flag" do
-      it "shows help with --help" do
-        expect do
-          described_class.run(["--help"], stdout: stdout, stderr: stderr)
-        end.to raise_error(Raygatherer::CLI::EarlyExit) do |error|
-          expect(error.exit_code).to eq(0)
-          expect(stdout.string).to include("Usage:")
-          expect(stdout.string).to include("recording stop")
-        end
-      end
-
-      it "shows help with -h" do
-        expect do
-          described_class.run(["-h"], stdout: stdout, stderr: stderr)
-        end.to raise_error(Raygatherer::CLI::EarlyExit) do |error|
-          expect(error.exit_code).to eq(0)
-        end
-      end
-    end
+    it_behaves_like "a command with help", "recording stop"
 
     describe "stopping a recording" do
       it "errors if a name is provided" do

@@ -6,25 +6,7 @@ RSpec.describe Raygatherer::Commands::Recording::Delete do
     let(:stderr) { StringIO.new }
     let(:api_client) { instance_double(Raygatherer::ApiClient) }
 
-    describe "--help flag" do
-      it "shows help with --help" do
-        expect do
-          described_class.run(["--help"], stdout: stdout, stderr: stderr)
-        end.to raise_error(Raygatherer::CLI::EarlyExit) do |error|
-          expect(error.exit_code).to eq(0)
-          expect(stdout.string).to include("Usage:")
-          expect(stdout.string).to include("recording delete")
-        end
-      end
-
-      it "shows help with -h" do
-        expect do
-          described_class.run(["-h"], stdout: stdout, stderr: stderr)
-        end.to raise_error(Raygatherer::CLI::EarlyExit) do |error|
-          expect(error.exit_code).to eq(0)
-        end
-      end
-    end
+    it_behaves_like "a command with help", "recording delete"
 
     describe "deleting a recording" do
       it "requires a recording name" do

@@ -6,25 +6,7 @@ RSpec.describe Raygatherer::Commands::Config::Set do
     let(:stderr) { StringIO.new }
     let(:api_client) { instance_double(Raygatherer::ApiClient) }
 
-    describe "--help flag" do
-      it "shows help with --help" do
-        expect do
-          described_class.run(["--help"], stdout: stdout, stderr: stderr)
-        end.to raise_error(Raygatherer::CLI::EarlyExit) do |error|
-          expect(error.exit_code).to eq(0)
-          expect(stdout.string).to include("Usage:")
-          expect(stdout.string).to include("config set")
-        end
-      end
-
-      it "shows help with -h" do
-        expect do
-          described_class.run(["-h"], stdout: stdout, stderr: stderr)
-        end.to raise_error(Raygatherer::CLI::EarlyExit) do |error|
-          expect(error.exit_code).to eq(0)
-        end
-      end
-    end
+    it_behaves_like "a command with help", "config set"
 
     describe "setting config" do
       it "reads JSON from stdin and sends to API" do

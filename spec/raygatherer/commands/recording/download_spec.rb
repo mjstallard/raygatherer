@@ -12,25 +12,9 @@ RSpec.describe Raygatherer::Commands::Recording::Download do
 
     after { FileUtils.remove_entry(tmpdir) }
 
-    describe "--help flag" do
-      it "shows help with --help" do
-        expect do
-          described_class.run(["--help"], stdout: stdout, stderr: stderr)
-        end.to raise_error(Raygatherer::CLI::EarlyExit) do |error|
-          expect(error.exit_code).to eq(0)
-          expect(stdout.string).to include("Usage:")
-          expect(stdout.string).to include("recording download")
-        end
-      end
+    it_behaves_like "a command with help", "recording download"
 
-      it "shows help with -h" do
-        expect do
-          described_class.run(["-h"], stdout: stdout, stderr: stderr)
-        end.to raise_error(Raygatherer::CLI::EarlyExit) do |error|
-          expect(error.exit_code).to eq(0)
-        end
-      end
-
+    describe "--help details" do
       it "shows format flags in help" do
         expect do
           described_class.run(["--help"], stdout: stdout, stderr: stderr)

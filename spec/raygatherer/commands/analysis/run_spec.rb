@@ -14,25 +14,7 @@ RSpec.describe Raygatherer::Commands::Analysis::Run do
       }
     end
 
-    describe "--help flag" do
-      it "shows help with --help" do
-        expect do
-          described_class.run(["--help"], stdout: stdout, stderr: stderr)
-        end.to raise_error(Raygatherer::CLI::EarlyExit) do |error|
-          expect(error.exit_code).to eq(0)
-          expect(stdout.string).to include("Usage:")
-          expect(stdout.string).to include("analysis run")
-        end
-      end
-
-      it "shows help with -h" do
-        expect do
-          described_class.run(["-h"], stdout: stdout, stderr: stderr)
-        end.to raise_error(Raygatherer::CLI::EarlyExit) do |error|
-          expect(error.exit_code).to eq(0)
-        end
-      end
-    end
+    it_behaves_like "a command with help", "analysis run"
 
     describe "running analysis" do
       it "queues a named recording for analysis" do
@@ -93,34 +75,7 @@ RSpec.describe Raygatherer::Commands::Analysis::Run do
       end
     end
 
-    describe "error handling" do
-      it "handles connection errors gracefully" do
-        allow(api_client).to receive(:start_analysis).and_raise(
-          Raygatherer::ApiClient::ConnectionError, "Connection failed"
-        )
-
-        exit_code = described_class.run(
-          ["my_recording"],
-          stdout: stdout, stderr: stderr, api_client: api_client
-        )
-
-        expect(stderr.string).to include("Error: Connection failed")
-        expect(exit_code).to eq(1)
-      end
-
-      it "handles API errors gracefully" do
-        allow(api_client).to receive(:start_analysis).and_raise(
-          Raygatherer::ApiClient::ApiError, "Server error"
-        )
-
-        exit_code = described_class.run(
-          ["my_recording"],
-          stdout: stdout, stderr: stderr, api_client: api_client
-        )
-
-        expect(stderr.string).to include("Error: Server error")
-        expect(exit_code).to eq(1)
-      end
-    end
+    it_behaves_like "command error handling",
+      api_method: :start_analysis, run_args: ["my_recording"], include_parse_error: false
   end
 end
