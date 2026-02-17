@@ -4,6 +4,8 @@ require "open3"
 require "tmpdir"
 
 RSpec.describe "CLI Integration" do
+  include StderrHelpers
+
   let(:exe_path) { File.expand_path("../../exe/raygatherer", __dir__) }
 
   around do |example|
@@ -19,7 +21,7 @@ RSpec.describe "CLI Integration" do
 
       expect(stdout).to include("raygatherer version")
       expect(stdout).to include(Raygatherer::VERSION)
-      expect(stderr).to be_empty
+      expect(strip_ruby_warnings(stderr)).to be_empty
       expect(status.exitstatus).to eq(0)
     end
   end
@@ -31,7 +33,7 @@ RSpec.describe "CLI Integration" do
       expect(stdout).to include("Usage:")
       expect(stdout).to include("--version")
       expect(stdout).to include("--help")
-      expect(stderr).to be_empty
+      expect(strip_ruby_warnings(stderr)).to be_empty
       expect(status.exitstatus).to eq(0)
     end
   end
@@ -41,7 +43,7 @@ RSpec.describe "CLI Integration" do
       stdout, stderr, status = Open3.capture3(@clean_env, exe_path)
 
       expect(stdout).to include("Usage:")
-      expect(stderr).to be_empty
+      expect(strip_ruby_warnings(stderr)).to be_empty
       expect(status.exitstatus).to eq(0)
     end
   end
@@ -115,7 +117,7 @@ RSpec.describe "CLI Integration" do
       expect(stdout).to include("Usage:")
       expect(stdout).to include("recording delete")
       expect(stdout).to include("--host")
-      expect(stderr).to be_empty
+      expect(strip_ruby_warnings(stderr)).to be_empty
       expect(status.exitstatus).to eq(0)
     end
 
@@ -172,7 +174,7 @@ RSpec.describe "CLI Integration" do
       expect(stdout).to include("Usage:")
       expect(stdout).to include("analysis run")
       expect(stdout).to include("--all")
-      expect(stderr).to be_empty
+      expect(strip_ruby_warnings(stderr)).to be_empty
       expect(status.exitstatus).to eq(0)
     end
 
@@ -206,7 +208,7 @@ RSpec.describe "CLI Integration" do
 
       expect(stdout).to include("Usage:")
       expect(stdout).to include("config set")
-      expect(stderr).to be_empty
+      expect(strip_ruby_warnings(stderr)).to be_empty
       expect(status.exitstatus).to eq(0)
     end
 

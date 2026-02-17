@@ -17,7 +17,7 @@ RSpec.shared_examples "a subcommand" do |args:, command_name:, help_includes: []
       expect(stdout).to include(command_name)
       expect(stdout).to include("--host")
       help_includes.each { |text| expect(stdout).to include(text) }
-      expect(stderr).to be_empty
+      expect(strip_ruby_warnings(stderr)).to be_empty
       expect(status.exitstatus).to eq(0)
     end
 
