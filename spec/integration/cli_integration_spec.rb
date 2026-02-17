@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "open3"
+require "tmpdir"
 
 RSpec.describe "CLI Integration" do
   let(:exe_path) { File.expand_path("../../exe/raygatherer", __dir__) }
@@ -55,199 +56,41 @@ RSpec.describe "CLI Integration" do
     end
   end
 
-  describe "raygatherer alerts" do
-    let(:host) { "http://localhost:8080" }
+  # Subcommands: host required, help, connection error
+  it_behaves_like "a subcommand",
+    args: ["alerts"], command_name: "alerts",
+    help_includes: ["--json", "--latest", "--after", "--recording", "Exit Codes:"]
 
-    it "requires --host flag" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "alerts")
+  it_behaves_like "a subcommand",
+    args: ["recording", "list"], command_name: "recording list"
 
-      expect(stderr).to include("--host is required")
-      expect(stderr).to include("Usage:")
-      expect(status.exitstatus).to eq(1)
-    end
-
-    it "shows help with --help" do
-      stdout, stderr, status = Open3.capture3(@clean_env, exe_path, "alerts", "--help")
-
-      expect(stdout).to include("Usage:")
-      expect(stdout).to include("--host")
-      expect(stderr).to be_empty
-      expect(status.exitstatus).to eq(0)
-    end
-
-    it "handles connection errors gracefully" do
-      # This will fail to connect since no server is running
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "alerts", "--host", host)
-
-      expect(stderr).to include("Error")
-      expect(stderr).to include("Failed to connect")
-      expect(status.exitstatus).to eq(1)
-    end
-
-    # Note: Full end-to-end tests with HTTP responses would require a running
-    # rayhunter instance or a test HTTP server. Those scenarios are covered by
-    # unit tests with mocked HTTP responses.
+  it_behaves_like "a subcommand",
+    args: ["recording", "download", "myrecording"], command_name: "recording download",
+    help_includes: ["--qmdl", "--pcap", "--zip", "--download-dir", "--save-as"] do
+    # download --help doesn't need a name argument
+    let(:help_args) { ["recording", "download"] }
   end
 
-  describe "raygatherer --verbose" do
-    it "accepts --verbose flag before command" do
-      _, stderr, status = Open3.capture3(@clean_env,
-        exe_path, "--verbose", "alerts", "--host", "http://localhost:9999")
+  it_behaves_like "a subcommand",
+    args: ["recording", "stop"], command_name: "recording stop"
 
-      # Will fail to connect, but should show verbose output
-      expect(stderr).to include("HTTP GET http://localhost:9999/api/analysis-report/live")
-      expect(status.exitstatus).to eq(1)
-    end
+  it_behaves_like "a subcommand",
+    args: ["recording", "start"], command_name: "recording start"
 
-    it "accepts --verbose flag after command" do
-      _, stderr, status = Open3.capture3(@clean_env,
-        exe_path, "alerts", "--verbose", "--host", "http://localhost:9999")
+  it_behaves_like "a subcommand",
+    args: ["analysis", "status"], command_name: "analysis status"
 
-      expect(stderr).to include("HTTP GET")
-      expect(status.exitstatus).to eq(1)
-    end
+  it_behaves_like "a subcommand",
+    args: ["stats"], command_name: "stats"
 
-    it "does not output verbose logs without flag" do
-      _, stderr, status = Open3.capture3(@clean_env,
-        exe_path, "alerts", "--host", "http://localhost:9999")
+  it_behaves_like "a subcommand",
+    args: ["config", "show"], command_name: "config show"
 
-      expect(stderr).not_to include("HTTP GET")
-      expect(stderr).not_to include("Request started")
-      expect(stderr).to include("Error") # Regular error message
-      expect(status.exitstatus).to eq(1)
-    end
+  it_behaves_like "a subcommand",
+    args: ["config", "test-notification"], command_name: "config test-notification"
 
-    it "verbose output goes to stderr, not stdout" do
-      stdout, stderr, _ = Open3.capture3(@clean_env,
-        exe_path, "--verbose", "alerts", "--host", "http://localhost:9999")
-
-      expect(stdout).to be_empty # No verbose in stdout
-      expect(stderr).to include("HTTP GET") # Verbose in stderr
-    end
-  end
-
-  describe "raygatherer --json flag" do
-    it "outputs valid JSON when --json flag is used" do
-      # This will fail to connect, but tests flag acceptance
-      stdout, _, status = Open3.capture3(@clean_env,
-        exe_path, "alerts", "--host", "http://localhost:9999", "--json")
-
-      expect(stdout).to be_empty  # Error case, no output to stdout
-      expect(status.exitstatus).to eq(1)  # Generic error
-    end
-
-    it "outputs human-readable format without --json (default)" do
-      _, stderr, status = Open3.capture3(@clean_env,
-        exe_path, "alerts", "--host", "http://localhost:9999")
-
-      expect(stderr).to include("Error")  # Human error message
-      expect(status.exitstatus).to eq(1)  # Generic error
-    end
-
-    it "works with --json and --verbose together" do
-      _, stderr, status = Open3.capture3(@clean_env,
-        exe_path, "--verbose", "alerts", "--host", "http://localhost:9999", "--json")
-
-      # Verbose logs to stderr
-      expect(stderr).to include("HTTP GET")
-      # JSON would go to stdout (but connection fails)
-      expect(status.exitstatus).to eq(1)  # Generic error
-    end
-
-    it "shows --json in help text" do
-      stdout, _, status = Open3.capture3(@clean_env,
-        exe_path, "alerts", "--help")
-
-      expect(stdout).to include("--json")
-      expect(stdout).to include("Exit Codes:")
-      expect(status.exitstatus).to eq(0)
-    end
-
-    it "shows --latest in help text" do
-      stdout, _, status = Open3.capture3(@clean_env,
-        exe_path, "alerts", "--help")
-
-      expect(stdout).to include("--latest")
-      expect(status.exitstatus).to eq(0)
-    end
-
-    it "shows --after in help text" do
-      stdout, _, status = Open3.capture3(@clean_env,
-        exe_path, "alerts", "--help")
-
-      expect(stdout).to include("--after")
-      expect(status.exitstatus).to eq(0)
-    end
-
-    it "shows --recording in help text" do
-      stdout, _, status = Open3.capture3(@clean_env,
-        exe_path, "alerts", "--help")
-
-      expect(stdout).to include("--recording")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer recording list" do
-    it "requires --host flag" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "recording", "list")
-
-      expect(stderr).to include("--host is required")
-      expect(stderr).to include("Usage:")
-      expect(status.exitstatus).to eq(1)
-    end
-
-    it "shows help with --help" do
-      stdout, stderr, status = Open3.capture3(@clean_env, exe_path, "recording", "list", "--help")
-
-      expect(stdout).to include("Usage:")
-      expect(stdout).to include("recording list")
-      expect(stdout).to include("--host")
-      expect(stderr).to be_empty
-      expect(status.exitstatus).to eq(0)
-    end
-
-    it "handles connection errors gracefully" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "recording", "list", "--host", "http://localhost:9999")
-
-      expect(stderr).to include("Error")
-      expect(stderr).to include("Failed to connect")
-      expect(status.exitstatus).to eq(1)
-    end
-  end
-
+  # Commands with custom validation
   describe "raygatherer recording download" do
-    it "requires --host flag" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "recording", "download", "myrecording")
-
-      expect(stderr).to include("--host is required")
-      expect(stderr).to include("Usage:")
-      expect(status.exitstatus).to eq(1)
-    end
-
-    it "shows help with --help" do
-      stdout, stderr, status = Open3.capture3(@clean_env, exe_path, "recording", "download", "--help")
-
-      expect(stdout).to include("Usage:")
-      expect(stdout).to include("recording download")
-      expect(stdout).to include("--qmdl")
-      expect(stdout).to include("--pcap")
-      expect(stdout).to include("--zip")
-      expect(stdout).to include("--download-dir")
-      expect(stdout).to include("--save-as")
-      expect(stderr).to be_empty
-      expect(status.exitstatus).to eq(0)
-    end
-
-    it "handles connection errors gracefully" do
-      _, stderr, status = Open3.capture3(@clean_env,
-        exe_path, "recording", "download", "myrecording", "--host", "http://localhost:9999")
-
-      expect(stderr).to include("Error")
-      expect(stderr).to include("Failed to connect")
-      expect(status.exitstatus).to eq(1)
-    end
-
     it "requires a recording name argument" do
       _, stderr, status = Open3.capture3(@clean_env,
         exe_path, "recording", "download", "--host", "http://localhost:9999")
@@ -295,33 +138,6 @@ RSpec.describe "CLI Integration" do
   end
 
   describe "raygatherer recording stop" do
-    it "requires --host flag" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "recording", "stop")
-
-      expect(stderr).to include("--host is required")
-      expect(stderr).to include("Usage:")
-      expect(status.exitstatus).to eq(1)
-    end
-
-    it "shows help with --help" do
-      stdout, stderr, status = Open3.capture3(@clean_env, exe_path, "recording", "stop", "--help")
-
-      expect(stdout).to include("Usage:")
-      expect(stdout).to include("recording stop")
-      expect(stdout).to include("--host")
-      expect(stderr).to be_empty
-      expect(status.exitstatus).to eq(0)
-    end
-
-    it "handles connection errors gracefully" do
-      _, stderr, status = Open3.capture3(@clean_env,
-        exe_path, "recording", "stop", "--host", "http://localhost:9999")
-
-      expect(stderr).to include("Error")
-      expect(stderr).to include("Failed to connect")
-      expect(status.exitstatus).to eq(1)
-    end
-
     it "rejects a recording name argument" do
       _, stderr, status = Open3.capture3(@clean_env,
         exe_path, "recording", "stop", "myrecording", "--host", "http://localhost:9999")
@@ -332,111 +148,11 @@ RSpec.describe "CLI Integration" do
   end
 
   describe "raygatherer recording start" do
-    it "requires --host flag" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "recording", "start")
-
-      expect(stderr).to include("--host is required")
-      expect(stderr).to include("Usage:")
-      expect(status.exitstatus).to eq(1)
-    end
-
-    it "shows help with --help" do
-      stdout, stderr, status = Open3.capture3(@clean_env, exe_path, "recording", "start", "--help")
-
-      expect(stdout).to include("Usage:")
-      expect(stdout).to include("recording start")
-      expect(stdout).to include("--host")
-      expect(stderr).to be_empty
-      expect(status.exitstatus).to eq(0)
-    end
-
-    it "handles connection errors gracefully" do
-      _, stderr, status = Open3.capture3(@clean_env,
-        exe_path, "recording", "start", "--host", "http://localhost:9999")
-
-      expect(stderr).to include("Error")
-      expect(stderr).to include("Failed to connect")
-      expect(status.exitstatus).to eq(1)
-    end
-
     it "rejects a recording name argument" do
       _, stderr, status = Open3.capture3(@clean_env,
         exe_path, "recording", "start", "myrecording", "--host", "http://localhost:9999")
 
       expect(stderr).to include("recording start does not take a name")
-      expect(status.exitstatus).to eq(1)
-    end
-  end
-
-  describe "raygatherer help includes recording download" do
-    it "shows recording download in help output" do
-      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
-
-      expect(stdout).to include("recording download")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer help includes recording list" do
-    it "shows recording list in help output" do
-      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
-
-      expect(stdout).to include("recording list")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer help includes recording delete" do
-    it "shows recording delete in help output" do
-      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
-
-      expect(stdout).to include("recording delete")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer help includes recording stop" do
-    it "shows recording stop in help output" do
-      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
-
-      expect(stdout).to include("recording stop")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer help includes recording start" do
-    it "shows recording start in help output" do
-      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
-
-      expect(stdout).to include("recording start")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer analysis status" do
-    it "requires --host flag" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "analysis", "status")
-
-      expect(stderr).to include("--host is required")
-      expect(stderr).to include("Usage:")
-      expect(status.exitstatus).to eq(1)
-    end
-
-    it "shows help with --help" do
-      stdout, stderr, status = Open3.capture3(@clean_env, exe_path, "analysis", "status", "--help")
-
-      expect(stdout).to include("Usage:")
-      expect(stdout).to include("analysis status")
-      expect(stdout).to include("--host")
-      expect(stderr).to be_empty
-      expect(status.exitstatus).to eq(0)
-    end
-
-    it "handles connection errors gracefully" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "analysis", "status", "--host", "http://localhost:9999")
-
-      expect(stderr).to include("Error")
-      expect(stderr).to include("Failed to connect")
       expect(status.exitstatus).to eq(1)
     end
   end
@@ -476,52 +192,6 @@ RSpec.describe "CLI Integration" do
     end
   end
 
-  describe "raygatherer help includes analysis run" do
-    it "shows analysis run in help output" do
-      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
-
-      expect(stdout).to include("analysis run")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer help includes analysis status" do
-    it "shows analysis status in help output" do
-      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
-
-      expect(stdout).to include("analysis status")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer config show" do
-    it "requires --host flag" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "config", "show")
-
-      expect(stderr).to include("--host is required")
-      expect(stderr).to include("Usage:")
-      expect(status.exitstatus).to eq(1)
-    end
-
-    it "shows help with --help" do
-      stdout, stderr, status = Open3.capture3(@clean_env, exe_path, "config", "show", "--help")
-
-      expect(stdout).to include("Usage:")
-      expect(stdout).to include("config show")
-      expect(stdout).to include("--host")
-      expect(stderr).to be_empty
-      expect(status.exitstatus).to eq(0)
-    end
-
-    it "handles connection errors gracefully" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "config", "show", "--host", "http://localhost:9999")
-
-      expect(stderr).to include("Error")
-      expect(stderr).to include("Failed to connect")
-      expect(status.exitstatus).to eq(1)
-    end
-  end
-
   describe "raygatherer config set" do
     it "requires --host flag" do
       _, stderr, status = Open3.capture3(@clean_env, exe_path, "config", "set")
@@ -553,98 +223,87 @@ RSpec.describe "CLI Integration" do
     end
   end
 
-  describe "raygatherer config test-notification" do
-    it "requires --host flag" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "config", "test-notification")
+  # --verbose flag
+  describe "raygatherer --verbose" do
+    it "accepts --verbose flag before command" do
+      _, stderr, status = Open3.capture3(@clean_env,
+        exe_path, "--verbose", "alerts", "--host", "http://localhost:9999")
 
-      expect(stderr).to include("--host is required")
-      expect(stderr).to include("Usage:")
+      expect(stderr).to include("HTTP GET http://localhost:9999/api/analysis-report/live")
       expect(status.exitstatus).to eq(1)
     end
 
-    it "shows help with --help" do
-      stdout, stderr, status = Open3.capture3(@clean_env, exe_path, "config", "test-notification", "--help")
+    it "accepts --verbose flag after command" do
+      _, stderr, status = Open3.capture3(@clean_env,
+        exe_path, "alerts", "--verbose", "--host", "http://localhost:9999")
 
-      expect(stdout).to include("Usage:")
-      expect(stdout).to include("config test-notification")
-      expect(stderr).to be_empty
-      expect(status.exitstatus).to eq(0)
+      expect(stderr).to include("HTTP GET")
+      expect(status.exitstatus).to eq(1)
     end
 
-    it "handles connection errors gracefully" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "config", "test-notification", "--host", "http://localhost:9999")
+    it "does not output verbose logs without flag" do
+      _, stderr, status = Open3.capture3(@clean_env,
+        exe_path, "alerts", "--host", "http://localhost:9999")
+
+      expect(stderr).not_to include("HTTP GET")
+      expect(stderr).not_to include("Request started")
+      expect(stderr).to include("Error")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "verbose output goes to stderr, not stdout" do
+      stdout, stderr, _ = Open3.capture3(@clean_env,
+        exe_path, "--verbose", "alerts", "--host", "http://localhost:9999")
+
+      expect(stdout).to be_empty
+      expect(stderr).to include("HTTP GET")
+    end
+  end
+
+  # --json flag
+  describe "raygatherer --json flag" do
+    it "outputs valid JSON when --json flag is used" do
+      stdout, _, status = Open3.capture3(@clean_env,
+        exe_path, "alerts", "--host", "http://localhost:9999", "--json")
+
+      expect(stdout).to be_empty
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "outputs human-readable format without --json (default)" do
+      _, stderr, status = Open3.capture3(@clean_env,
+        exe_path, "alerts", "--host", "http://localhost:9999")
 
       expect(stderr).to include("Error")
-      expect(stderr).to include("Failed to connect")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "works with --json and --verbose together" do
+      _, stderr, status = Open3.capture3(@clean_env,
+        exe_path, "--verbose", "alerts", "--host", "http://localhost:9999", "--json")
+
+      expect(stderr).to include("HTTP GET")
       expect(status.exitstatus).to eq(1)
     end
   end
 
-  describe "raygatherer help includes config test-notification" do
-    it "shows config test-notification in help output" do
-      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
-
-      expect(stdout).to include("config test-notification")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer help includes config set" do
-    it "shows config set in help output" do
-      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
-
-      expect(stdout).to include("config set")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer help includes config show" do
-    it "shows config show in help output" do
-      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
-
-      expect(stdout).to include("config show")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer stats" do
-    it "requires --host flag" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "stats")
-
-      expect(stderr).to include("--host is required")
-      expect(stderr).to include("Usage:")
-      expect(status.exitstatus).to eq(1)
+  # Main help includes all subcommands
+  describe "main help" do
+    %w[
+      alerts stats
+    ].each do |cmd|
+      it_behaves_like "visible in main help", cmd
     end
 
-    it "shows help with --help" do
-      stdout, stderr, status = Open3.capture3(@clean_env, exe_path, "stats", "--help")
-
-      expect(stdout).to include("Usage:")
-      expect(stdout).to include("stats")
-      expect(stdout).to include("--host")
-      expect(stderr).to be_empty
-      expect(status.exitstatus).to eq(0)
+    [
+      "recording list", "recording download", "recording delete",
+      "recording stop", "recording start",
+      "analysis status", "analysis run",
+      "config show", "config set", "config test-notification"
+    ].each do |cmd|
+      it_behaves_like "visible in main help", cmd
     end
 
-    it "handles connection errors gracefully" do
-      _, stderr, status = Open3.capture3(@clean_env, exe_path, "stats", "--host", "http://localhost:9999")
-
-      expect(stderr).to include("Error")
-      expect(stderr).to include("Failed to connect")
-      expect(status.exitstatus).to eq(1)
-    end
-  end
-
-  describe "raygatherer help includes stats" do
-    it "shows stats in help output" do
-      stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
-
-      expect(stdout).to include("stats")
-      expect(status.exitstatus).to eq(0)
-    end
-  end
-
-  describe "raygatherer help includes Configuration section" do
     it "shows Configuration section with config file path" do
       stdout, _, status = Open3.capture3(@clean_env, exe_path, "--help")
 
@@ -654,16 +313,13 @@ RSpec.describe "CLI Integration" do
     end
   end
 
+  # Exit codes
   describe "raygatherer exit codes" do
     it "returns exit code 1 when --host is missing" do
-      _, stderr, status = Open3.capture3(@clean_env,
-        exe_path, "alerts")
+      _, stderr, status = Open3.capture3(@clean_env, exe_path, "alerts")
 
       expect(stderr).to include("--host is required")
-      expect(status.exitstatus).to eq(1)  # Generic error
+      expect(status.exitstatus).to eq(1)
     end
-
-    # Note: Testing severity-based exit codes (10, 11, 12) requires a real or mocked
-    # rayhunter instance returning alert data. These are covered by unit tests.
   end
 end
