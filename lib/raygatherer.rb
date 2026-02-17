@@ -31,5 +31,4 @@ require_relative "raygatherer/commands/config/test_notification"
 
 module Raygatherer
   class Error < StandardError; end
-  # Your code goes here...
 end

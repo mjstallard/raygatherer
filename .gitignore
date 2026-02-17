@@ -9,3 +9,12 @@
 
 # rspec failure tracking
 .rspec_status
+
+# Built gem files
+*.gem
+
+# IDE
+.idea/
+
+# macOS
+.DS_Store
