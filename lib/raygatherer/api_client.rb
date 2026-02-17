@@ -143,12 +143,16 @@ module Raygatherer
       log_verbose "HTTP #{method.to_s.upcase} #{url}"
       log_verbose "Basic Auth: user=#{@username}" if @username
 
-      start_time = Time.now
-      log_verbose "Request started at: #{start_time.utc}"
+      req = build_request(method, uri, body: body, content_type: content_type)
+      response, resp_body = execute_request(uri, req, ok_code: ok_code, ok_status_text: ok_status_text)
 
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = (uri.scheme == "https")
+      [response, resp_body]
+    rescue SocketError, Errno::ECONNREFUSED, Net::OpenTimeout, Net::ReadTimeout => e
+      log_verbose "Connection error: #{e.class} - #{e.message}"
+      raise ConnectionError, "Failed to connect to #{@host}: #{e.message}"
+    end
 
+    def build_request(method, uri, body: nil, content_type: nil)
       req = case method
       when :get then Net::HTTP::Get.new(uri.request_uri)
       when :post then Net::HTTP::Post.new(uri.request_uri)
@@ -158,6 +162,15 @@ module Raygatherer
         req.body = body
         req["Content-Type"] = content_type if content_type
       end
+      req
+    end
+
+    def execute_request(uri, req, ok_code:, ok_status_text:)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == "https")
+
+      start_time = Time.now
+      log_verbose "Request started at: #{start_time.utc}"
 
       response = http.request(req)
 
@@ -170,9 +183,6 @@ module Raygatherer
       log_verbose body if @verbose
 
       [response, body]
-    rescue SocketError, Errno::ECONNREFUSED, Net::OpenTimeout, Net::ReadTimeout => e
-      log_verbose "Connection error: #{e.class} - #{e.message}"
-      raise ConnectionError, "Failed to connect to #{@host}: #{e.message}"
     end
 
     def stream_to(path, io)
