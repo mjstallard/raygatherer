@@ -357,46 +357,10 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result["current_entry"]).to be_nil
     end
 
-    it "handles HTTP errors" do
-      stub_request(:get, "#{host}/api/qmdl-manifest")
-        .to_return(status: 500, body: "Internal Server Error")
-
-      expect { client.fetch_manifest }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /Server returned 500/
-      )
-    end
-
-    it "handles connection errors" do
-      stub_request(:get, "#{host}/api/qmdl-manifest")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.fetch_manifest }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
-    end
-
-    it "handles malformed JSON" do
-      stub_request(:get, "#{host}/api/qmdl-manifest")
-        .to_return(status: 200, body: "not json")
-
-      expect { client.fetch_manifest }.to raise_error(
-        Raygatherer::ApiClient::ParseError,
-        /Failed to parse/
-      )
-    end
-
-    it "sends basic auth credentials when configured" do
-      auth_client = described_class.new(host, username: "user", password: "pass")
-
-      stub_request(:get, "#{host}/api/qmdl-manifest")
-        .with(basic_auth: ["user", "pass"])
-        .to_return(status: 200, body: ::JSON.generate(manifest_response))
-
-      result = auth_client.fetch_manifest
-
-      expect(result["entries"]).to be_an(Array)
+    it_behaves_like "API client GET error handling",
+      path: "/api/qmdl-manifest",
+      method_call: ->(c) { c.fetch_manifest } do
+      let(:success_body) { ::JSON.generate(manifest_response) }
     end
   end
 
@@ -434,46 +398,10 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result["disk_stats"]["total_size"]).to eq("128G")
     end
 
-    it "handles HTTP errors" do
-      stub_request(:get, "#{host}/api/system-stats")
-        .to_return(status: 500, body: "Internal Server Error")
-
-      expect { client.fetch_system_stats }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /Server returned 500/
-      )
-    end
-
-    it "handles connection errors" do
-      stub_request(:get, "#{host}/api/system-stats")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.fetch_system_stats }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
-    end
-
-    it "handles malformed JSON" do
-      stub_request(:get, "#{host}/api/system-stats")
-        .to_return(status: 200, body: "not json")
-
-      expect { client.fetch_system_stats }.to raise_error(
-        Raygatherer::ApiClient::ParseError,
-        /Failed to parse/
-      )
-    end
-
-    it "sends basic auth credentials when configured" do
-      auth_client = described_class.new(host, username: "user", password: "pass")
-
-      stub_request(:get, "#{host}/api/system-stats")
-        .with(basic_auth: ["user", "pass"])
-        .to_return(status: 200, body: ::JSON.generate(stats_response))
-
-      result = auth_client.fetch_system_stats
-
-      expect(result["disk_stats"]).to be_a(Hash)
+    it_behaves_like "API client GET error handling",
+      path: "/api/system-stats",
+      method_call: ->(c) { c.fetch_system_stats } do
+      let(:success_body) { ::JSON.generate(stats_response) }
     end
   end
 
@@ -563,35 +491,9 @@ RSpec.describe Raygatherer::ApiClient do
       expect(WebMock).to have_requested(:post, "#{host}/api/delete-recording/#{recording_name}")
     end
 
-    it "raises ApiError on non-202 response" do
-      stub_request(:post, "#{host}/api/delete-recording/#{recording_name}")
-        .to_return(status: 400, body: "Not Found")
-
-      expect { client.delete_recording(recording_name) }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /Server returned 400/
-      )
-    end
-
-    it "raises ConnectionError on connection failure" do
-      stub_request(:post, "#{host}/api/delete-recording/#{recording_name}")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.delete_recording(recording_name) }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
-    end
-
-    it "sends basic auth credentials when configured" do
-      auth_client = described_class.new(host, username: "user", password: "pass")
-
-      stub_request(:post, "#{host}/api/delete-recording/#{recording_name}")
-        .with(basic_auth: ["user", "pass"])
-        .to_return(status: 202, body: "")
-
-      auth_client.delete_recording(recording_name)
-    end
+    it_behaves_like "API client POST error handling",
+      path: "/api/delete-recording/1738950000",
+      method_call: ->(c) { c.delete_recording("1738950000") }
   end
 
   describe "URL-encoding recording names" do
@@ -635,35 +537,9 @@ RSpec.describe Raygatherer::ApiClient do
       expect(WebMock).to have_requested(:post, "#{host}/api/stop-recording")
     end
 
-    it "raises ApiError on non-202 response" do
-      stub_request(:post, "#{host}/api/stop-recording")
-        .to_return(status: 500, body: "Internal Server Error")
-
-      expect { client.stop_recording }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /Server returned 500/
-      )
-    end
-
-    it "raises ConnectionError on connection failure" do
-      stub_request(:post, "#{host}/api/stop-recording")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.stop_recording }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
-    end
-
-    it "sends basic auth credentials when configured" do
-      auth_client = described_class.new(host, username: "user", password: "pass")
-
-      stub_request(:post, "#{host}/api/stop-recording")
-        .with(basic_auth: ["user", "pass"])
-        .to_return(status: 202, body: "")
-
-      auth_client.stop_recording
-    end
+    it_behaves_like "API client POST error handling",
+      path: "/api/stop-recording",
+      method_call: ->(c) { c.stop_recording }
   end
 
   describe "error messages include response body" do
@@ -719,35 +595,9 @@ RSpec.describe Raygatherer::ApiClient do
       expect(WebMock).to have_requested(:post, "#{host}/api/start-recording")
     end
 
-    it "raises ApiError on non-202 response" do
-      stub_request(:post, "#{host}/api/start-recording")
-        .to_return(status: 500, body: "Internal Server Error")
-
-      expect { client.start_recording }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /Server returned 500/
-      )
-    end
-
-    it "raises ConnectionError on connection failure" do
-      stub_request(:post, "#{host}/api/start-recording")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.start_recording }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
-    end
-
-    it "sends basic auth credentials when configured" do
-      auth_client = described_class.new(host, username: "user", password: "pass")
-
-      stub_request(:post, "#{host}/api/start-recording")
-        .with(basic_auth: ["user", "pass"])
-        .to_return(status: 202, body: "")
-
-      auth_client.start_recording
-    end
+    it_behaves_like "API client POST error handling",
+      path: "/api/start-recording",
+      method_call: ->(c) { c.start_recording }
   end
 
   describe "#fetch_analysis_report" do
@@ -778,36 +628,10 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result).to have_key(:metadata)
     end
 
-    it "handles HTTP errors" do
-      stub_request(:get, "#{host}/api/analysis-report/my_recording")
-        .to_return(status: 404, body: "Not Found")
-
-      expect { client.fetch_analysis_report("my_recording") }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /Server returned 404/
-      )
-    end
-
-    it "handles connection errors" do
-      stub_request(:get, "#{host}/api/analysis-report/my_recording")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.fetch_analysis_report("my_recording") }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
-    end
-
-    it "sends basic auth credentials when configured" do
-      auth_client = described_class.new(host, username: "user", password: "pass")
-
-      stub_request(:get, "#{host}/api/analysis-report/my_recording")
-        .with(basic_auth: ["user", "pass"])
-        .to_return(status: 200, body: ndjson_response)
-
-      result = auth_client.fetch_analysis_report("my_recording")
-
-      expect(result).to have_key(:metadata)
+    it_behaves_like "API client GET error handling",
+      path: "/api/analysis-report/my_recording",
+      method_call: ->(c) { c.fetch_analysis_report("my_recording") } do
+      let(:success_body) { ndjson_response }
     end
   end
 
@@ -841,36 +665,10 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result["running"]).to be_nil
     end
 
-    it "handles HTTP errors" do
-      stub_request(:get, "#{host}/api/analysis")
-        .to_return(status: 500, body: "Internal Server Error")
-
-      expect { client.fetch_analysis_status }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /Server returned 500/
-      )
-    end
-
-    it "handles connection errors" do
-      stub_request(:get, "#{host}/api/analysis")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.fetch_analysis_status }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
-    end
-
-    it "sends basic auth credentials when configured" do
-      auth_client = described_class.new(host, username: "user", password: "pass")
-
-      stub_request(:get, "#{host}/api/analysis")
-        .with(basic_auth: ["user", "pass"])
-        .to_return(status: 200, body: ::JSON.generate(analysis_status_response))
-
-      result = auth_client.fetch_analysis_status
-
-      expect(result["queued"]).to eq(["rec1", "rec2"])
+    it_behaves_like "API client GET error handling",
+      path: "/api/analysis",
+      method_call: ->(c) { c.fetch_analysis_status } do
+      let(:success_body) { ::JSON.generate(analysis_status_response) }
     end
   end
 
@@ -910,36 +708,10 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result["queued"]).to eq(["rec1"])
     end
 
-    it "raises ApiError on non-202 response" do
-      stub_request(:post, "#{host}/api/analysis/my_recording")
-        .to_return(status: 400, body: "Bad Request")
-
-      expect { client.start_analysis("my_recording") }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /Server returned 400/
-      )
-    end
-
-    it "raises ConnectionError on connection failure" do
-      stub_request(:post, "#{host}/api/analysis/my_recording")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.start_analysis("my_recording") }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
-    end
-
-    it "sends basic auth credentials when configured" do
-      auth_client = described_class.new(host, username: "user", password: "pass")
-
-      stub_request(:post, "#{host}/api/analysis/my_recording")
-        .with(basic_auth: ["user", "pass"])
-        .to_return(status: 202, body: analysis_status_response)
-
-      result = auth_client.start_analysis("my_recording")
-
-      expect(result["queued"]).to eq(["rec1"])
+    it_behaves_like "API client POST error handling",
+      path: "/api/analysis/my_recording",
+      method_call: ->(c) { c.start_analysis("my_recording") } do
+      let(:success_body) { analysis_status_response }
     end
   end
 
@@ -967,36 +739,10 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result["analyzers"]["null_cipher"]).to be true
     end
 
-    it "handles HTTP errors" do
-      stub_request(:get, "#{host}/api/config")
-        .to_return(status: 500, body: "Internal Server Error")
-
-      expect { client.fetch_config }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /Server returned 500/
-      )
-    end
-
-    it "handles connection errors" do
-      stub_request(:get, "#{host}/api/config")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.fetch_config }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
-    end
-
-    it "sends basic auth credentials when configured" do
-      auth_client = described_class.new(host, username: "user", password: "pass")
-
-      stub_request(:get, "#{host}/api/config")
-        .with(basic_auth: ["user", "pass"])
-        .to_return(status: 200, body: ::JSON.generate(config_response))
-
-      result = auth_client.fetch_config
-
-      expect(result["port"]).to eq(8080)
+    it_behaves_like "API client GET error handling",
+      path: "/api/config",
+      method_call: ->(c) { c.fetch_config } do
+      let(:success_body) { ::JSON.generate(config_response) }
     end
   end
 
@@ -1017,35 +763,9 @@ RSpec.describe Raygatherer::ApiClient do
         .with(body: config_json)
     end
 
-    it "raises ApiError on non-202 response" do
-      stub_request(:post, "#{host}/api/config")
-        .to_return(status: 400, body: "Invalid config")
-
-      expect { client.set_config(config_json) }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /Server returned 400/
-      )
-    end
-
-    it "raises ConnectionError on connection failure" do
-      stub_request(:post, "#{host}/api/config")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.set_config(config_json) }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
-    end
-
-    it "sends basic auth credentials when configured" do
-      auth_client = described_class.new(host, username: "user", password: "pass")
-
-      stub_request(:post, "#{host}/api/config")
-        .with(basic_auth: ["user", "pass"])
-        .to_return(status: 202, body: "")
-
-      auth_client.set_config(config_json)
-    end
+    it_behaves_like "API client POST error handling",
+      path: "/api/config",
+      method_call: ->(c) { c.set_config('{"port":9090}') }
   end
 
   describe "#test_notification" do
@@ -1058,34 +778,9 @@ RSpec.describe Raygatherer::ApiClient do
       expect(WebMock).to have_requested(:post, "#{host}/api/test-notification")
     end
 
-    it "raises ApiError on 400 (no notification URL configured)" do
-      stub_request(:post, "#{host}/api/test-notification")
-        .to_return(status: 400, body: "No notification URL configured")
-
-      expect { client.test_notification }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /No notification URL configured/
-      )
-    end
-
-    it "raises ConnectionError on connection failure" do
-      stub_request(:post, "#{host}/api/test-notification")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.test_notification }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
-    end
-
-    it "sends basic auth credentials when configured" do
-      auth_client = described_class.new(host, username: "user", password: "pass")
-
-      stub_request(:post, "#{host}/api/test-notification")
-        .with(basic_auth: ["user", "pass"])
-        .to_return(status: 200, body: "")
-
-      auth_client.test_notification
-    end
+    it_behaves_like "API client POST error handling",
+      path: "/api/test-notification",
+      method_call: ->(c) { c.test_notification },
+      expected_code: "200"
   end
 end
