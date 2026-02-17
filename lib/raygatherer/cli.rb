@@ -60,13 +60,13 @@ module Raygatherer
 
       if @argv.empty?
         show_help
-        return 0
+        return Commands::EXIT_CODE_SUCCESS
       end
 
       # Check if first argument is a flag
       if /^-/.match?(@argv.first)
         parse_options
-        return 0
+        return Commands::EXIT_CODE_SUCCESS
       end
 
       # Route to commands
@@ -83,11 +83,11 @@ module Raygatherer
       unless route
         @stderr.puts "Unknown command: #{[command, subcommand].compact.join(" ")}"
         show_help(@stderr)
-        return 1
+        return Commands::EXIT_CODE_ERROR
       end
 
       require_relative route[:file]
-      return 1 unless require_host!
+      return Commands::EXIT_CODE_ERROR unless require_host!
 
       kwargs = {stdout: @stdout, stderr: @stderr, api_client: build_api_client}
       kwargs[:json] = @json if route[:json]
@@ -95,11 +95,11 @@ module Raygatherer
       resolve_class(route[:klass]).run(@argv, **kwargs)
     rescue Config::ConfigError => e
       @stderr.puts "Error: #{e.message}"
-      1
+      Commands::EXIT_CODE_ERROR
     rescue OptionParser::InvalidOption => e
       @stderr.puts e.message
       show_help(@stderr)
-      1
+      Commands::EXIT_CODE_ERROR
     rescue EarlyExit => e
       e.exit_code
     end
@@ -114,12 +114,12 @@ module Raygatherer
 
         opts.on("-v", "--version", "Show version") do
           @stdout.puts "raygatherer version #{Raygatherer::VERSION}"
-          raise EarlyExit, 0
+          raise EarlyExit, Commands::EXIT_CODE_SUCCESS
         end
 
         opts.on("-h", "--help", "Show this help message") do
           show_help
-          raise EarlyExit, 0
+          raise EarlyExit, Commands::EXIT_CODE_SUCCESS
         end
 
         opts.separator ""

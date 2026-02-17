@@ -15,6 +15,10 @@ module Raygatherer
         "High" => 3
       }.freeze
 
+      EXIT_CODE_LOW_SEVERITY = 10
+      EXIT_CODE_MEDIUM_SEVERITY = 11
+      EXIT_CODE_HIGH_SEVERITY = 12
+
       def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
         super(argv, stdout: stdout, stderr: stderr, api_client: api_client)
         @json = json
@@ -67,7 +71,7 @@ module Raygatherer
 
           opts.on("-h", "--help", "Show this help message") do
             show_help
-            raise CLI::EarlyExit, 0
+            raise CLI::EarlyExit, EXIT_CODE_SUCCESS
           end
         end.parse!(@argv)
       end
@@ -133,29 +137,29 @@ module Raygatherer
         print_global_options(output, json: true)
         output.puts ""
         output.puts "Exit Codes:"
-        output.puts "    0   No alerts detected"
-        output.puts "    1   Error (connection, parse, missing --host, etc.)"
-        output.puts "    10  Low severity alert"
-        output.puts "    11  Medium severity alert"
-        output.puts "    12  High severity alert"
+        output.puts "    #{EXIT_CODE_SUCCESS}   No alerts detected"
+        output.puts "    #{EXIT_CODE_ERROR}   Error (connection, parse, missing --host, etc.)"
+        output.puts "    #{EXIT_CODE_LOW_SEVERITY}  Low severity alert"
+        output.puts "    #{EXIT_CODE_MEDIUM_SEVERITY}  Medium severity alert"
+        output.puts "    #{EXIT_CODE_HIGH_SEVERITY}  High severity alert"
         output.puts ""
         output.puts "Examples:"
         output.puts "  raygatherer --host http://192.168.1.100:8080 alerts"
         output.puts "  raygatherer --host http://192.168.1.100:8080 --json alerts"
         output.puts "  raygatherer --host http://rayhunter --json alerts"
         output.puts "  raygatherer --host http://rayhunter alerts --after 2024-02-07T14:25:33Z"
-        output.puts "  [ $? -ge 11 ] && telegram-send 'Medium+ severity alert!'"
+        output.puts "  [ $? -ge #{EXIT_CODE_MEDIUM_SEVERITY} ] && telegram-send 'Medium+ severity alert!'"
       end
 
       def severity_exit_code(alerts)
-        return 0 if alerts.empty?
+        return EXIT_CODE_SUCCESS if alerts.empty?
 
         max_severity = alerts.map { |a| SEVERITY_ORDER[a[:severity]] || 0 }.max
         case max_severity
-        when 1 then 10
-        when 2 then 11
-        when 3 then 12
-        else 0
+        when 1 then EXIT_CODE_LOW_SEVERITY
+        when 2 then EXIT_CODE_MEDIUM_SEVERITY
+        when 3 then EXIT_CODE_HIGH_SEVERITY
+        else EXIT_CODE_SUCCESS
         end
       end
     end

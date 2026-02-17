@@ -28,21 +28,21 @@ module Raygatherer
         def run
           with_error_handling do
             parse_options
-            next 1 unless validate_format_flags
-            next 1 unless validate_path_flags
+            next EXIT_CODE_ERROR unless validate_format_flags
+            next EXIT_CODE_ERROR unless validate_path_flags
 
             name = @argv.shift
             unless name
               @stderr.puts "Error: recording name is required"
-              next 1
+              next EXIT_CODE_ERROR
             end
 
             dest_path = resolve_destination(name)
-            next 1 unless dest_path
+            next EXIT_CODE_ERROR unless dest_path
 
             if File.exist?(dest_path)
               @stderr.puts "Error: file already exists: #{dest_path}"
-              next 1
+              next EXIT_CODE_ERROR
             end
 
             spinner = Spinner.new(stderr: @stderr)
@@ -55,7 +55,7 @@ module Raygatherer
 
             size = File.size(dest_path)
             @stdout.puts "#{dest_path} (#{format_size(size)})"
-            0
+            EXIT_CODE_SUCCESS
           end
         end
 
@@ -89,7 +89,7 @@ module Raygatherer
 
             opts.on("-h", "--help", "Show this help message") do
               show_help
-              raise CLI::EarlyExit, 0
+              raise CLI::EarlyExit, EXIT_CODE_SUCCESS
             end
           end.parse!(@argv)
         end

@@ -13,12 +13,12 @@ module Raygatherer
 
             if @argv.any?
               @stderr.puts "Error: recording stop does not take a name"
-              next 1
+              next EXIT_CODE_ERROR
             end
 
             @api_client.stop_recording
             @stdout.puts "Recording stopped"
-            0
+            EXIT_CODE_SUCCESS
           end
         end
 
@@ -32,7 +32,7 @@ module Raygatherer
 
             opts.on("-h", "--help", "Show this help message") do
               show_help
-              raise CLI::EarlyExit, 0
+              raise CLI::EarlyExit, EXIT_CODE_SUCCESS
             end
           end.parse!(@argv)
         end

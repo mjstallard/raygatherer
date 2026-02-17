@@ -23,7 +23,7 @@ module Raygatherer
             formatter = @json ? Formatters::AnalysisStatusJSON.new : Formatters::AnalysisStatusHuman.new
             @stdout.puts formatter.format(status)
 
-            0
+            EXIT_CODE_SUCCESS
           end
         end
 
@@ -37,7 +37,7 @@ module Raygatherer
 
             opts.on("-h", "--help", "Show this help message") do
               show_help
-              raise CLI::EarlyExit, 0
+              raise CLI::EarlyExit, EXIT_CODE_SUCCESS
             end
           end.parse!(@argv)
         end

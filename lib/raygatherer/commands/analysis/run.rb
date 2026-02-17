@@ -23,12 +23,12 @@ module Raygatherer
 
             if @all && name
               @stderr.puts "Error: cannot use --all with a recording name"
-              return 1
+              return EXIT_CODE_ERROR
             end
 
             if !@all && name.nil?
               @stderr.puts "Error: recording name or --all is required"
-              return 1
+              return EXIT_CODE_ERROR
             end
 
             status = @api_client.start_analysis(@all ? "" : name)
@@ -36,7 +36,7 @@ module Raygatherer
             formatter = @json ? Formatters::AnalysisStatusJSON.new : Formatters::AnalysisStatusHuman.new
             @stdout.puts formatter.format(status)
 
-            0
+            EXIT_CODE_SUCCESS
           end
         end
 
@@ -54,7 +54,7 @@ module Raygatherer
 
             opts.on("-h", "--help", "Show this help message") do
               show_help
-              raise CLI::EarlyExit, 0
+              raise CLI::EarlyExit, EXIT_CODE_SUCCESS
             end
           end.parse!(@argv)
         end

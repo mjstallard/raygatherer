@@ -2,6 +2,9 @@
 
 module Raygatherer
   module Commands
+    EXIT_CODE_SUCCESS = 0
+    EXIT_CODE_ERROR = 1
+
     class Base
       def self.run(argv, **kwargs)
         new(argv, **kwargs).run
@@ -31,7 +34,7 @@ module Raygatherer
         raise
       rescue => e
         @stderr.puts "Error: #{e.message}"
-        1
+        EXIT_CODE_ERROR
       end
     end
   end

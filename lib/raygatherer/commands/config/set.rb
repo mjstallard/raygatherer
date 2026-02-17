@@ -21,20 +21,20 @@ module Raygatherer
 
             if json_input.empty?
               @stderr.puts "Error: no JSON input received on stdin"
-              return 1
+              return EXIT_CODE_ERROR
             end
 
             begin
               ::JSON.parse(json_input)
             rescue ::JSON::ParserError => e
               @stderr.puts "Error: invalid JSON input: #{e.message}"
-              return 1
+              return EXIT_CODE_ERROR
             end
 
             @api_client.set_config(json_input)
             @stdout.puts "Configuration updated successfully."
 
-            0
+            EXIT_CODE_SUCCESS
           end
         end
 
@@ -50,7 +50,7 @@ module Raygatherer
 
             opts.on("-h", "--help", "Show this help message") do
               show_help
-              raise CLI::EarlyExit, 0
+              raise CLI::EarlyExit, EXIT_CODE_SUCCESS
             end
           end.parse!(@argv)
         end

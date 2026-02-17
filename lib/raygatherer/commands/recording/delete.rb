@@ -14,12 +14,12 @@ module Raygatherer
             name = @argv.shift
             unless name
               @stderr.puts "Error: recording name is required"
-              next 1
+              next EXIT_CODE_ERROR
             end
 
             @api_client.delete_recording(name)
             @stdout.puts "Deleted recording: #{name}"
-            0
+            EXIT_CODE_SUCCESS
           end
         end
 
@@ -33,7 +33,7 @@ module Raygatherer
 
             opts.on("-h", "--help", "Show this help message") do
               show_help
-              raise CLI::EarlyExit, 0
+              raise CLI::EarlyExit, EXIT_CODE_SUCCESS
             end
           end.parse!(@argv)
         end
