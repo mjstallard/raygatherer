@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name = "raygatherer"
   spec.version = Raygatherer::VERSION
   spec.authors = ["Mike Stallard"]
-  spec.email = ["mikestallard@gmail.com"]
+  spec.email = ["prelate-33.requiem@icloud.com"]
 
   spec.summary = "CLI for fetching and displaying alerts from Rayhunter"
   spec.description = "Ruby CLI tool for interacting with Rayhunter, a cell tower analysis device " \
