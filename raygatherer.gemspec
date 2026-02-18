@@ -10,8 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = "CLI for fetching and displaying alerts from Rayhunter"
   spec.description = "Ruby CLI tool for interacting with Rayhunter, a cell tower analysis device " \
-                     "for detecting IMSI catchers and other cellular network anomalies. " \
-                     "Zero runtime dependencies beyond Ruby stdlib."
+                     "for detecting IMSI catchers and other cellular network anomalies. "
   spec.homepage = "https://github.com/mjstallard/raygatherer"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1.0"
