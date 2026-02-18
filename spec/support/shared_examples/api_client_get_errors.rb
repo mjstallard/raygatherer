@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.shared_examples "API client GET error handling" do |path:, method_call:|
+RSpec.shared_examples "API client GET error handling" do |path:, method_call:, include_parse_error: true|
   it "handles HTTP errors" do
     stub_request(:get, "#{host}#{path}")
       .to_return(status: 500, body: "Internal Server Error")
@@ -21,14 +21,16 @@ RSpec.shared_examples "API client GET error handling" do |path:, method_call:|
     )
   end
 
-  it "handles malformed JSON" do
-    stub_request(:get, "#{host}#{path}")
-      .to_return(status: 200, body: "not json")
+  if include_parse_error
+    it "handles malformed JSON" do
+      stub_request(:get, "#{host}#{path}")
+        .to_return(status: 200, body: "not json")
 
-    expect { method_call.call(client) }.to raise_error(
-      Raygatherer::ApiClient::ParseError,
-      /Failed to parse/
-    )
+      expect { method_call.call(client) }.to raise_error(
+        Raygatherer::ApiClient::ParseError,
+        /Failed to parse/
+      )
+    end
   end
 
   it "sends basic auth credentials when configured" do

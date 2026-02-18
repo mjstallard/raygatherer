@@ -727,24 +727,11 @@ RSpec.describe Raygatherer::ApiClient do
       expect(result).to eq(log_content)
     end
 
-    it "handles HTTP errors" do
-      stub_request(:get, "#{host}/api/log")
-        .to_return(status: 500, body: "Internal Server Error")
-
-      expect { client.fetch_log }.to raise_error(
-        Raygatherer::ApiClient::ApiError,
-        /Server returned 500/
-      )
-    end
-
-    it "handles connection errors" do
-      stub_request(:get, "#{host}/api/log")
-        .to_raise(SocketError.new("Failed to open TCP connection"))
-
-      expect { client.fetch_log }.to raise_error(
-        Raygatherer::ApiClient::ConnectionError,
-        /Failed to connect/
-      )
+    it_behaves_like "API client GET error handling",
+      path: "/api/log",
+      method_call: ->(c) { c.fetch_log },
+      include_parse_error: false do
+      let(:success_body) { "some log content" }
     end
   end
 
