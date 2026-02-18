@@ -139,7 +139,33 @@ RSpec.describe "CLI Integration" do
       _, stderr, status = Open3.capture3(@clean_env,
         exe_path, "recording", "delete", "--host", "http://localhost:9999")
 
-      expect(stderr).to include("recording name is required")
+      expect(stderr).to include("recording name or --all is required")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "shows --all and --force in help" do
+      stdout, _, status = Open3.capture3(@clean_env, exe_path, "recording", "delete", "--help")
+
+      expect(stdout).to include("--all")
+      expect(stdout).to include("--force")
+      expect(status.exitstatus).to eq(0)
+    end
+
+    it "handles connection errors with --all --force" do
+      _, stderr, status = Open3.capture3(@clean_env,
+        exe_path, "recording", "delete", "--all", "--force", "--host", "http://localhost:9999")
+
+      expect(stderr).to include("Error")
+      expect(stderr).to include("Failed to connect")
+      expect(status.exitstatus).to eq(1)
+    end
+
+    it "aborts when --all confirmation is denied" do
+      _, stderr, status = Open3.capture3(@clean_env,
+        exe_path, "recording", "delete", "--all", "--host", "http://localhost:9999",
+        stdin_data: "n\n")
+
+      expect(stderr).to include("Aborted.")
       expect(status.exitstatus).to eq(1)
     end
   end
