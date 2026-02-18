@@ -102,6 +102,10 @@ module Raygatherer
       post("/api/delete-recording/#{URI.encode_www_form_component(name)}")
     end
 
+    def delete_all_recordings
+      post("/api/delete-all-recordings")
+    end
+
     def start_analysis(name)
       encoded = URI.encode_www_form_component(name)
       body = post("/api/analysis/#{encoded}")

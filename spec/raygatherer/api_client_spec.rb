@@ -496,6 +496,21 @@ RSpec.describe Raygatherer::ApiClient do
       method_call: ->(c) { c.delete_recording("1738950000") }
   end
 
+  describe "#delete_all_recordings" do
+    it "POSTs to the delete-all-recordings endpoint" do
+      stub_request(:post, "#{host}/api/delete-all-recordings")
+        .to_return(status: 202, body: "ok")
+
+      client.delete_all_recordings
+
+      expect(WebMock).to have_requested(:post, "#{host}/api/delete-all-recordings")
+    end
+
+    it_behaves_like "API client POST error handling",
+      path: "/api/delete-all-recordings",
+      method_call: ->(c) { c.delete_all_recordings }
+  end
+
   describe "URL-encoding recording names" do
     it "URL-encodes recording name with spaces in download path" do
       stub_request(:get, "#{host}/api/qmdl/my+recording")
