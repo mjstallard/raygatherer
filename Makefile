@@ -14,6 +14,9 @@ uninstall:
 clean:
 	rm -f raygatherer-*.gem
 
+lint:
+	bundle exec standardrb
+
 test:
 	bundle exec rspec
 
