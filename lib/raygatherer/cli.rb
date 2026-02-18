@@ -26,6 +26,7 @@ module Raygatherer
       ["recording", "start"] => {file: "commands/recording/start", klass: "Commands::Recording::Start", json: false},
       ["analysis", "status"] => {file: "commands/analysis/status", klass: "Commands::Analysis::Status", json: true},
       ["analysis", "run"] => {file: "commands/analysis/run", klass: "Commands::Analysis::Run", json: true},
+      ["analysis", "report"] => {file: "commands/analysis/report", klass: "Commands::Analysis::Report", json: true},
       ["config", "show"] => {file: "commands/config/show", klass: "Commands::Config::Show", json: true},
       ["config", "set"] => {file: "commands/config/set", klass: "Commands::Config::Set", json: false},
       ["config", "test-notification"] => {file: "commands/config/test_notification", klass: "Commands::Config::TestNotification", json: false}
@@ -175,6 +176,7 @@ module Raygatherer
       output.puts "    analysis status                   Show analysis queue status"
       output.puts "    analysis run <name>               Queue a recording for analysis"
       output.puts "    analysis run --all                Queue all recordings for analysis"
+      output.puts "    analysis report <name>            Show the full analysis report for a recording"
       output.puts "    config show                       Show device configuration"
       output.puts "    config set                        Update device configuration (reads JSON from stdin)"
       output.puts "    config test-notification          Send a test notification"
