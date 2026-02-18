@@ -1,5 +1,7 @@
 # Raygatherer
 
+![Build Pipeline Status](https://github.com/mjstallard/raygatherer/actions/workflows/main.yml/badge.svg)
+
 This is a CLI to interact with [Rayhunter](https://github.com/EFForg/rayhunter/). It was built with the intent of giving myself the ability to automate alerting and recording management on a Rayhunter that is not-mobile (ie., it is plugged in 24/7 in my attic). If you too wish to script or otherwise automate using your Rayhunter, you might find this to be helpful!
 
 **Important:** This is a personal side-project, and has no affiliation with or endorsement from the Rayhunter project, or the EFF. It is entirely unofficial, and without warranty.
