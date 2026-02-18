@@ -715,6 +715,39 @@ RSpec.describe Raygatherer::ApiClient do
     end
   end
 
+  describe "#fetch_log" do
+    let(:log_content) { "2024-01-01T00:00:00Z INFO Starting rayhunter\n2024-01-01T00:00:01Z DEBUG Ready\n" }
+
+    it "returns the log as a string" do
+      stub_request(:get, "#{host}/api/log")
+        .to_return(status: 200, body: log_content, headers: {"Content-Type" => "text/plain"})
+
+      result = client.fetch_log
+
+      expect(result).to eq(log_content)
+    end
+
+    it "handles HTTP errors" do
+      stub_request(:get, "#{host}/api/log")
+        .to_return(status: 500, body: "Internal Server Error")
+
+      expect { client.fetch_log }.to raise_error(
+        Raygatherer::ApiClient::ApiError,
+        /Server returned 500/
+      )
+    end
+
+    it "handles connection errors" do
+      stub_request(:get, "#{host}/api/log")
+        .to_raise(SocketError.new("Failed to open TCP connection"))
+
+      expect { client.fetch_log }.to raise_error(
+        Raygatherer::ApiClient::ConnectionError,
+        /Failed to connect/
+      )
+    end
+  end
+
   describe "#fetch_config" do
     let(:config_response) do
       {

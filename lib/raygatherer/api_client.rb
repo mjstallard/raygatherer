@@ -73,6 +73,13 @@ module Raygatherer
       end
     end
 
+    def fetch_log
+      get("/api/log") do |body|
+        log_verbose "Received log (#{body.bytesize} bytes)"
+        body
+      end
+    end
+
     def test_notification
       post("/api/test-notification", expected_code: "200")
     end
