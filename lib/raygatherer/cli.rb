@@ -16,6 +16,7 @@ module Raygatherer
     end
 
     ROUTES = {
+      ["log", nil] => {file: "commands/log", klass: "Commands::Log", json: false},
       ["stats", nil] => {file: "commands/stats", klass: "Commands::Stats", json: true},
       ["alerts", nil] => {file: "commands/alerts", klass: "Commands::Alerts", json: true},
       ["recording", "list"] => {file: "commands/recording/list", klass: "Commands::Recording::List", json: true},
@@ -177,6 +178,7 @@ module Raygatherer
       output.puts "    config show                       Show device configuration"
       output.puts "    config set                        Update device configuration (reads JSON from stdin)"
       output.puts "    config test-notification          Send a test notification"
+      output.puts "    log                              Download the device log"
       output.puts "    stats                            Show device system stats"
       output.puts ""
       output.puts "Configuration:"

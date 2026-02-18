@@ -83,6 +83,11 @@ RSpec.describe "CLI Integration" do
     args: ["analysis", "status"], command_name: "analysis status"
 
   it_behaves_like "a subcommand",
+    args: ["log"], command_name: "log"
+
+  it_behaves_like "visible in main help", "log"
+
+  it_behaves_like "a subcommand",
     args: ["stats"], command_name: "stats"
 
   it_behaves_like "a subcommand",
