@@ -283,11 +283,10 @@ module Raygatherer
     end
 
     def normalize_host(host)
-      # Add http:// if no scheme is present
-      if !%r{^https?://}.match?(host)
-        "http://#{host}"
-      else
+      if %r{^https?://}.match?(host)
         host
+      else
+        "http://#{host}"
       end
     end
   end
