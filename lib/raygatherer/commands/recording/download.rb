@@ -28,21 +28,21 @@ module Raygatherer
         def run
           with_error_handling do
             parse_options
-            next EXIT_CODE_ERROR unless validate_format_flags
-            next EXIT_CODE_ERROR unless validate_path_flags
+            return EXIT_CODE_ERROR unless validate_format_flags
+            return EXIT_CODE_ERROR unless validate_path_flags
 
             name = @argv.shift
             unless name
               @stderr.puts "Error: recording name is required"
-              next EXIT_CODE_ERROR
+              return EXIT_CODE_ERROR
             end
 
             dest_path = resolve_destination(name)
-            next EXIT_CODE_ERROR unless dest_path
+            return EXIT_CODE_ERROR unless dest_path
 
             if File.exist?(dest_path)
               @stderr.puts "Error: file already exists: #{dest_path}"
-              next EXIT_CODE_ERROR
+              return EXIT_CODE_ERROR
             end
 
             spinner = Spinner.new(stderr: @stderr)

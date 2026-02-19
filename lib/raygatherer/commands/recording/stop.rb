@@ -13,7 +13,7 @@ module Raygatherer
 
             if @argv.any?
               @stderr.puts "Error: recording stop does not take a name"
-              next EXIT_CODE_ERROR
+              return EXIT_CODE_ERROR
             end
 
             @api_client.stop_recording
