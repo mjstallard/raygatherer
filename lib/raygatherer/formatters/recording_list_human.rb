@@ -59,6 +59,10 @@ module Raygatherer
 
         lines << "  Size:         #{format_size(entry["qmdl_size_bytes"])}"
 
+        if !active && entry["stop_reason"]
+          lines << "  Stop reason:  #{entry["stop_reason"]}"
+        end
+
         lines.join("\n")
       end
 

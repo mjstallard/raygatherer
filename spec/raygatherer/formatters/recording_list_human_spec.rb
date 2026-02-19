@@ -151,5 +151,33 @@ RSpec.describe Raygatherer::Formatters::RecordingListHuman do
 
       expect(result).to include("2.0 GB")
     end
+
+    it "shows stop_reason for inactive entries that have one" do
+      manifest = {
+        "entries" => [
+          {"name" => "1738950000", "start_time" => "2025-02-07T13:40:00+00:00",
+           "last_message_time" => "2025-02-07T15:30:00+00:00", "qmdl_size_bytes" => 134_963_200,
+           "stop_reason" => "Disk space critically low (512MB free), recording stopped automatically"}
+        ],
+        "current_entry" => nil
+      }
+      result = subject.format(manifest)
+
+      expect(result).to include("Stop reason:")
+      expect(result).to include("Disk space critically low (512MB free), recording stopped automatically")
+    end
+
+    it "does not show stop_reason line when stop_reason is absent" do
+      manifest = {
+        "entries" => [
+          {"name" => "1738950000", "start_time" => "2025-02-07T13:40:00+00:00",
+           "last_message_time" => "2025-02-07T15:30:00+00:00", "qmdl_size_bytes" => 134_963_200}
+        ],
+        "current_entry" => nil
+      }
+      result = subject.format(manifest)
+
+      expect(result).not_to include("Stop reason:")
+    end
   end
 end
