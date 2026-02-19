@@ -2,9 +2,7 @@
 
 RSpec.describe Raygatherer::Commands::Analysis::Run do
   describe ".run" do
-    let(:stdout) { StringIO.new }
-    let(:stderr) { StringIO.new }
-    let(:api_client) { instance_double(Raygatherer::ApiClient) }
+    include_context "command context"
 
     let(:status_response) do
       {

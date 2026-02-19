@@ -2,9 +2,7 @@
 
 RSpec.describe Raygatherer::Commands::Alerts do
   describe ".run" do
-    let(:stdout) { StringIO.new }
-    let(:stderr) { StringIO.new }
-    let(:api_client) { instance_double(Raygatherer::ApiClient) }
+    include_context "command context"
 
     it_behaves_like "a command with help", "alerts"
 
@@ -488,9 +486,7 @@ RSpec.describe Raygatherer::Commands::Alerts do
   end
 
   describe "json param" do
-    let(:stdout) { StringIO.new }
-    let(:stderr) { StringIO.new }
-    let(:api_client) { instance_double(Raygatherer::ApiClient) }
+    include_context "command context"
 
     it "accepts json param" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({
@@ -570,9 +566,7 @@ RSpec.describe Raygatherer::Commands::Alerts do
   end
 
   describe "severity-based exit codes" do
-    let(:stdout) { StringIO.new }
-    let(:stderr) { StringIO.new }
-    let(:api_client) { instance_double(Raygatherer::ApiClient) }
+    include_context "command context"
 
     it "returns 0 when no alerts" do
       allow(api_client).to receive(:fetch_live_analysis_report).and_return({

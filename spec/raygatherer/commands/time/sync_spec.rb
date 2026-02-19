@@ -4,9 +4,7 @@ require "time"
 
 RSpec.describe Raygatherer::Commands::Time::Sync do
   describe ".run" do
-    let(:stdout) { StringIO.new }
-    let(:stderr) { StringIO.new }
-    let(:api_client) { instance_double(Raygatherer::ApiClient) }
+    include_context "command context"
     let(:time_data) do
       {
         "system_time" => "2024-12-15T10:30:45-08:00",

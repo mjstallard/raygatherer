@@ -4,9 +4,7 @@ require "tmpdir"
 
 RSpec.describe Raygatherer::Commands::Recording::Download do
   describe ".run" do
-    let(:stdout) { StringIO.new }
-    let(:stderr) { StringIO.new }
-    let(:api_client) { instance_double(Raygatherer::ApiClient) }
+    include_context "command context"
     let(:binary_content) { "\x00\x01\x02\x03\x04".b }
     let(:tmpdir) { Dir.mktmpdir }
 

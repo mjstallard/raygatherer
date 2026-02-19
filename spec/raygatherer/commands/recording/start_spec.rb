@@ -2,9 +2,7 @@
 
 RSpec.describe Raygatherer::Commands::Recording::Start do
   describe ".run" do
-    let(:stdout) { StringIO.new }
-    let(:stderr) { StringIO.new }
-    let(:api_client) { instance_double(Raygatherer::ApiClient) }
+    include_context "command context"
 
     it_behaves_like "a command with help", "recording start"
 

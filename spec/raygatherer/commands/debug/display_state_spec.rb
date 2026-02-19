@@ -3,9 +3,7 @@
 require "spec_helper"
 
 RSpec.describe Raygatherer::Commands::Debug::DisplayState do
-  let(:stdout) { StringIO.new }
-  let(:stderr) { StringIO.new }
-  let(:api_client) { instance_double(Raygatherer::ApiClient) }
+  include_context "command context"
 
   it_behaves_like "a command with help", "debug display-state"
 
