@@ -84,6 +84,10 @@ module Raygatherer
       post("/api/test-notification", expected_code: "200")
     end
 
+    def set_display_state(body_json)
+      post("/api/debug/display-state", body: body_json, content_type: "application/json", expected_code: "200")
+    end
+
     def set_config(json_body)
       post("/api/config", body: json_body, content_type: "application/json")
     end

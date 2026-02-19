@@ -818,4 +818,21 @@ RSpec.describe Raygatherer::ApiClient do
       method_call: ->(c) { c.test_notification },
       expected_code: "200"
   end
+
+  describe "#set_display_state" do
+    it "POSTs JSON body to /api/debug/display-state and expects 200" do
+      stub_request(:post, "#{host}/api/debug/display-state")
+        .with(body: '"Recording"', headers: {"Content-Type" => "application/json"})
+        .to_return(status: 200, body: "")
+
+      client.set_display_state('"Recording"')
+
+      expect(WebMock).to have_requested(:post, "#{host}/api/debug/display-state")
+    end
+
+    it_behaves_like "API client POST error handling",
+      path: "/api/debug/display-state",
+      method_call: ->(c) { c.set_display_state('"Recording"') },
+      expected_code: "200"
+  end
 end

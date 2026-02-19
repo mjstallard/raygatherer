@@ -29,7 +29,8 @@ module Raygatherer
       ["analysis", "report"] => {file: "commands/analysis/report", klass: "Commands::Analysis::Report", json: true},
       ["config", "show"] => {file: "commands/config/show", klass: "Commands::Config::Show", json: true},
       ["config", "set"] => {file: "commands/config/set", klass: "Commands::Config::Set", json: false},
-      ["config", "test-notification"] => {file: "commands/config/test_notification", klass: "Commands::Config::TestNotification", json: false}
+      ["config", "test-notification"] => {file: "commands/config/test_notification", klass: "Commands::Config::TestNotification", json: false},
+      ["debug", "display-state"] => {file: "commands/debug/display_state", klass: "Commands::Debug::DisplayState", json: false}
     }.freeze
 
     def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
@@ -180,6 +181,7 @@ module Raygatherer
       output.puts "    config show                       Show device configuration"
       output.puts "    config set                        Update device configuration (reads JSON from stdin)"
       output.puts "    config test-notification          Send a test notification"
+      output.puts "    debug display-state STATE         Set device display state (recording, paused, warning)"
       output.puts "    log                              Download the device log"
       output.puts "    stats                            Show device system stats"
       output.puts ""

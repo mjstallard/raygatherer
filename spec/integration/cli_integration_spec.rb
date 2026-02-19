@@ -96,6 +96,9 @@ RSpec.describe "CLI Integration" do
   it_behaves_like "a subcommand",
     args: ["config", "test-notification"], command_name: "config test-notification"
 
+  it_behaves_like "a subcommand",
+    args: ["debug", "display-state", "recording"], command_name: "debug display-state"
+
   # Commands with custom validation
   describe "raygatherer recording download" do
     it "requires a recording name argument" do
@@ -332,7 +335,8 @@ RSpec.describe "CLI Integration" do
       "recording list", "recording download", "recording delete",
       "recording stop", "recording start",
       "analysis status", "analysis run",
-      "config show", "config set", "config test-notification"
+      "config show", "config set", "config test-notification",
+      "debug display-state"
     ].each do |cmd|
       it_behaves_like "visible in main help", cmd
     end

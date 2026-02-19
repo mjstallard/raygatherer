@@ -32,6 +32,7 @@ require_relative "raygatherer/commands/analysis/report"
 require_relative "raygatherer/commands/config/show"
 require_relative "raygatherer/commands/config/set"
 require_relative "raygatherer/commands/config/test_notification"
+require_relative "raygatherer/commands/debug/display_state"
 
 module Raygatherer
   class Error < StandardError; end
