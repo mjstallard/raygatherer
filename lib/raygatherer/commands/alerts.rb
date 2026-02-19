@@ -105,13 +105,13 @@ module Raygatherer
       end
 
       def parse_timestamp(str)
-        Time.parse(str)
+        ::Time.parse(str)
       rescue ArgumentError
         raise ArgumentError, "invalid timestamp: #{str}"
       end
 
       def filter_after(alerts)
-        alerts.select { |a| a[:packet_timestamp] && Time.parse(a[:packet_timestamp]) > @after }
+        alerts.select { |a| a[:packet_timestamp] && ::Time.parse(a[:packet_timestamp]) > @after }
       end
 
       def filter_latest(alerts, rows)
