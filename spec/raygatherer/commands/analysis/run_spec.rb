@@ -30,14 +30,34 @@ RSpec.describe Raygatherer::Commands::Analysis::Run do
       end
 
       it "queues all recordings with --all" do
-        allow(api_client).to receive(:start_analysis).with("").and_return(status_response)
+        manifest = {"entries" => [{"name" => "rec1"}, {"name" => "rec2"}]}
+        final_status = {"queued" => ["rec1", "rec2"], "running" => nil, "finished" => []}
+
+        allow(api_client).to receive(:fetch_manifest).and_return(manifest)
+        expect(api_client).to receive(:start_analysis).with("rec1")
+        expect(api_client).to receive(:start_analysis).with("rec2")
+        allow(api_client).to receive(:fetch_analysis_status).and_return(final_status)
 
         exit_code = described_class.run(
           ["--all"],
           stdout: stdout, stderr: stderr, api_client: api_client
         )
 
-        expect(stdout.string).to include("Queued (1):")
+        expect(stdout.string).to include("Queued (2):")
+        expect(exit_code).to eq(0)
+      end
+
+      it "handles --all with no recordings gracefully" do
+        allow(api_client).to receive(:fetch_manifest).and_return({"entries" => []})
+        allow(api_client).to receive(:fetch_analysis_status).and_return(
+          {"queued" => [], "running" => nil, "finished" => []}
+        )
+
+        exit_code = described_class.run(
+          ["--all"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
         expect(exit_code).to eq(0)
       end
 

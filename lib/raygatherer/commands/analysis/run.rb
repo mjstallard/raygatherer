@@ -31,7 +31,7 @@ module Raygatherer
               return EXIT_CODE_ERROR
             end
 
-            status = @api_client.start_analysis(@all ? "" : name)
+            status = @all ? run_all : @api_client.start_analysis(name)
 
             formatter = @json ? Formatters::AnalysisStatusJSON.new : Formatters::AnalysisStatusHuman.new
             @stdout.puts formatter.format(status)
@@ -41,6 +41,13 @@ module Raygatherer
         end
 
         private
+
+        def run_all
+          manifest = @api_client.fetch_manifest
+          names = manifest["entries"].map { |e| e["name"] }
+          names.each { |name| @api_client.start_analysis(name) }
+          @api_client.fetch_analysis_status
+        end
 
         def parse_options
           OptionParser.new do |opts|
