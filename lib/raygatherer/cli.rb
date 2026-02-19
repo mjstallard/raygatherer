@@ -49,8 +49,8 @@ module Raygatherer
 
     def run
       # Extract global flags BEFORE processing
-      cli_verbose = @argv.delete("--verbose") ? true : nil
-      cli_json = @argv.delete("--json") ? true : nil
+      cli_verbose = extract_boolean_flag("--verbose")
+      cli_json = extract_boolean_flag("--json")
       cli_host = extract_value_flag("--host")
       cli_username = extract_value_flag("--basic-auth-user")
       cli_password = extract_value_flag("--basic-auth-password")
@@ -148,6 +148,10 @@ module Raygatherer
 
     def resolve_class(name)
       name.split("::").reduce(Raygatherer) { |mod, part| mod.const_get(part) }
+    end
+
+    def extract_boolean_flag(flag)
+      @argv.delete(flag) ? true : nil
     end
 
     def extract_value_flag(flag)
