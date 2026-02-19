@@ -83,6 +83,10 @@ RSpec.describe "CLI Integration" do
     args: ["analysis", "status"], command_name: "analysis status"
 
   it_behaves_like "a subcommand",
+    args: ["analysis", "report", "--live"], command_name: "analysis report",
+    help_includes: ["--live"]
+
+  it_behaves_like "a subcommand",
     args: ["log"], command_name: "log"
 
   it_behaves_like "visible in main help", "log"
@@ -340,7 +344,7 @@ RSpec.describe "CLI Integration" do
     [
       "recording list", "recording download", "recording delete",
       "recording stop", "recording start",
-      "analysis status", "analysis run",
+      "analysis status", "analysis run", "analysis report",
       "config show", "config set", "config test-notification",
       "debug display-state",
       "time show", "time sync"

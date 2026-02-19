@@ -23,13 +23,37 @@ RSpec.describe Raygatherer::Commands::Analysis::Report do
     it_behaves_like "a command with help", "analysis report"
 
     describe "argument validation" do
-      it "requires a recording name" do
+      it "requires a recording name or --live" do
         exit_code = described_class.run(
           [],
           stdout: stdout, stderr: stderr, api_client: api_client
         )
 
-        expect(stderr.string).to include("recording name is required")
+        expect(stderr.string).to include("recording name or --live is required")
+        expect(exit_code).to eq(1)
+      end
+    end
+
+    describe "--live flag" do
+      it "calls fetch_live_analysis_report when --live is given" do
+        allow(api_client).to receive(:fetch_live_analysis_report).and_return(analysis_report)
+
+        exit_code = described_class.run(
+          ["--live"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(api_client).to have_received(:fetch_live_analysis_report)
+        expect(exit_code).to eq(0)
+      end
+
+      it "errors when --live and a name are both given" do
+        exit_code = described_class.run(
+          ["--live", "1738950000"],
+          stdout: stdout, stderr: stderr, api_client: api_client
+        )
+
+        expect(stderr.string).to include("cannot use --live with a recording name")
         expect(exit_code).to eq(1)
       end
     end
