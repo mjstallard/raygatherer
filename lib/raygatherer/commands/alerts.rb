@@ -3,7 +3,8 @@
 require "optparse"
 require "time"
 require_relative "base"
-require_relative "../formatters/json"
+require_relative "../formatters/alerts_json"
+require_relative "../formatters/alerts_human"
 
 module Raygatherer
   module Commands
@@ -41,7 +42,7 @@ module Raygatherer
           alerts = filter_latest(alerts, data[:rows]) if @latest
 
           # Select formatter based on --json flag
-          formatter = @json ? Formatters::JSON.new : Formatters::Human.new
+          formatter = @json ? Formatters::AlertsJSON.new : Formatters::AlertsHuman.new
           @stdout.puts formatter.format(alerts)
 
           # Return severity-based exit code

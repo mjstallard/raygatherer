@@ -4,7 +4,7 @@ require "json"
 
 module Raygatherer
   module Formatters
-    class JSON
+    class AlertsJSON
       def format(alerts)
         output = alerts.map do |alert|
           {
@@ -15,7 +15,7 @@ module Raygatherer
           }
         end
 
-        ::JSON.generate(output)
+        JSON.generate(output)
       end
     end
   end

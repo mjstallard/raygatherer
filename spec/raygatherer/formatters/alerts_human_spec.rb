@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Raygatherer::Formatters::Human do
+RSpec.describe Raygatherer::Formatters::AlertsHuman do
   describe "#format" do
     it "shows green checkmark when no alerts" do
       result = subject.format([])

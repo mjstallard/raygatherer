@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Raygatherer::Formatters::JSON do
+RSpec.describe Raygatherer::Formatters::AlertsJSON do
   describe "#format" do
     it "formats empty alerts as empty JSON array" do
       formatter = described_class.new

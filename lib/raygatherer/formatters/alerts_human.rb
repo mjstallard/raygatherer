@@ -2,7 +2,7 @@
 
 module Raygatherer
   module Formatters
-    class Human
+    class AlertsHuman
       def format(alerts)
         if alerts.empty?
           colorize("✓ No alerts detected", :green)
