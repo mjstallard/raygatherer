@@ -157,8 +157,7 @@ module Raygatherer
     def extract_value_flag(flag)
       index = @argv.index(flag)
       return nil unless index
-      @argv.delete_at(index) # remove the flag
-      @argv.delete_at(index) # remove the value (shifted into same index)
+      @argv.slice!(index, 2)&.last
     end
 
     def show_help(output = @stdout)
