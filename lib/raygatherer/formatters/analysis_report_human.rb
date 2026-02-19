@@ -61,13 +61,13 @@ module Raygatherer
         end
 
         events = row["events"] || []
-        non_nil = events.each_with_index.reject { |e, _| e.nil? }
+        present_events = events.each_with_index.reject { |e, _| e.nil? }
 
-        if non_nil.empty?
+        if present_events.empty?
           return ["#{timestamp}  No events"]
         end
 
-        non_nil.map do |event, index|
+        present_events.map do |event, index|
           event_type = event["event_type"] || "Unknown"
           message = event["message"]
           analyzer = analyzers.dig(index, "name")
