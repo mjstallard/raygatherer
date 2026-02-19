@@ -105,7 +105,6 @@ RSpec.describe Raygatherer::Commands::Recording::Delete do
         expect(stdout.string).to include("Deleted recording: myrecording")
         expect(exit_code).to eq(0)
       end
-
     end
 
     it_behaves_like "command error handling",

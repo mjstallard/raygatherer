@@ -39,7 +39,6 @@ RSpec.describe Raygatherer::Commands::Recording::Start do
         expect(stdout.string).to include("Recording started")
         expect(exit_code).to eq(0)
       end
-
     end
 
     it_behaves_like "command error handling",
