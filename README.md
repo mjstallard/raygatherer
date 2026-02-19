@@ -12,27 +12,36 @@ Currently implemented:
 
 - alerts from live analysis, with severity-based exit codes
 - recording list/start/stop/delete/download
-- system stats
+- analysis report for named or active recordings
 - analysis queue status and triggering analysis runs
+- system stats and raw log output
+- device clock show and sync
 - config show/set/test-notification
 - JSON output mode for scriptable commands
 - optional basic auth and config file support
+- debug utilities (display-state)
 
 ## Installation
 
-### Ruby version
-
-`raygatherer` requires Ruby `>= 3.1.0`.
-
-### Install from this repo
+### Via RubyGems
 
 ```bash
+gem install raygatherer
+```
+
+Requires Ruby >= 3.2.
+
+### From source
+
+```bash
+git clone https://github.com/mjstallard/raygatherer.git
+cd raygatherer
 bundle install
 make build
 make install
 ```
 
-Or install directly with RubyGems:
+Or build and install the gem directly:
 
 ```bash
 gem build raygatherer.gemspec
@@ -50,37 +59,49 @@ raygatherer --help
 Check live alerts:
 
 ```bash
-raygatherer --host http://rayhunter.local alerts
+raygatherer --host http://192.168.1.1 alerts
 ```
 
 Check live alerts as JSON:
 
 ```bash
-raygatherer --host http://rayhunter.local --json alerts
+raygatherer --host http://192.168.1.1 --json alerts
 ```
 
 List recordings:
 
 ```bash
-raygatherer --host http://rayhunter.local recording list
+raygatherer --host http://192.168.1.1 recording list
 ```
 
 Download a recording:
 
 ```bash
-raygatherer --host http://rayhunter.local recording download 1738950000
+raygatherer --host http://192.168.1.1 recording download 1738950000
+```
+
+Show analysis report for a recording:
+
+```bash
+raygatherer --host http://192.168.1.1 analysis report 1738950000
+```
+
+Show analysis report for the active recording:
+
+```bash
+raygatherer --host http://192.168.1.1 analysis report --live
 ```
 
 Show analysis queue status:
 
 ```bash
-raygatherer --host http://rayhunter.local analysis status
+raygatherer --host http://192.168.1.1 analysis status
 ```
 
 Show system stats:
 
 ```bash
-raygatherer --host http://rayhunter.local stats
+raygatherer --host http://192.168.1.1 stats
 ```
 
 ## Global Flags
@@ -113,7 +134,7 @@ CLI flags always override config values.
 Example:
 
 ```yaml
-host: http://rayhunter.local
+host: http://192.168.1.1
 basic_auth_user: admin
 basic_auth_password: replace-me
 json: false
@@ -126,16 +147,21 @@ Main commands:
 
 - `alerts`
 - `recording list`
-- `recording download <name> [--qmdl|--pcap|--zip] [--download-dir DIR|--save-as PATH]`
-- `recording delete <name>`
-- `recording stop`
 - `recording start`
+- `recording stop`
+- `recording download <name> [--qmdl|--pcap|--zip] [--download-dir DIR|--save-as PATH]`
+- `recording delete <name> | --all [--force]`
 - `analysis status`
-- `analysis run [NAME|--all]`
+- `analysis run <name> | --all`
+- `analysis report <name> | --live`
+- `time show`
+- `time sync`
 - `config show`
 - `config set` (reads JSON from stdin)
 - `config test-notification`
 - `stats`
+- `log`
+- `debug display-state <recording|paused|warning> [--severity low|medium|high]`
 
 For command-specific help:
 
@@ -164,7 +190,7 @@ raygatherer analysis run --help
 Example:
 
 ```bash
-raygatherer --host http://rayhunter.local alerts
+raygatherer --host http://192.168.1.1 alerts
 code=$?
 [ "$code" -ge 11 ] && echo "medium or high alert"
 ```
@@ -176,7 +202,7 @@ Commands that support `--json` return machine-readable output to `stdout`. This 
 Example:
 
 ```bash
-raygatherer --host http://rayhunter.local --json config show | jq '.analyzers'
+raygatherer --host http://192.168.1.1 --json config show | jq '.analyzers'
 ```
 
 ## Development
