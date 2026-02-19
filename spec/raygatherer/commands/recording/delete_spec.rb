@@ -106,33 +106,9 @@ RSpec.describe Raygatherer::Commands::Recording::Delete do
         expect(exit_code).to eq(0)
       end
 
-      it "handles API errors" do
-        allow(api_client).to receive(:delete_recording).and_raise(
-          Raygatherer::ApiClient::ApiError, "Server returned 400: Bad Request"
-        )
-
-        exit_code = described_class.run(
-          ["myrecording"],
-          stdout: stdout, stderr: stderr, api_client: api_client
-        )
-
-        expect(stderr.string).to include("Error: Server returned 400")
-        expect(exit_code).to eq(1)
-      end
-
-      it "handles connection errors" do
-        allow(api_client).to receive(:delete_recording).and_raise(
-          Raygatherer::ApiClient::ConnectionError, "Failed to connect"
-        )
-
-        exit_code = described_class.run(
-          ["myrecording"],
-          stdout: stdout, stderr: stderr, api_client: api_client
-        )
-
-        expect(stderr.string).to include("Error: Failed to connect")
-        expect(exit_code).to eq(1)
-      end
     end
+
+    it_behaves_like "command error handling",
+      api_method: :delete_recording, run_args: ["myrecording"], include_parse_error: false
   end
 end

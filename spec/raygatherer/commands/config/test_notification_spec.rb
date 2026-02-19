@@ -18,28 +18,7 @@ RSpec.describe Raygatherer::Commands::Config::TestNotification do
       end
     end
 
-    describe "error handling" do
-      it "handles connection errors gracefully" do
-        allow(api_client).to receive(:test_notification).and_raise(
-          Raygatherer::ApiClient::ConnectionError, "Connection failed"
-        )
-
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
-
-        expect(stderr.string).to include("Error: Connection failed")
-        expect(exit_code).to eq(1)
-      end
-
-      it "handles API errors gracefully (e.g. no URL configured)" do
-        allow(api_client).to receive(:test_notification).and_raise(
-          Raygatherer::ApiClient::ApiError, "Server returned 400: No notification URL configured"
-        )
-
-        exit_code = described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
-
-        expect(stderr.string).to include("Error: Server returned 400: No notification URL configured")
-        expect(exit_code).to eq(1)
-      end
-    end
+    it_behaves_like "command error handling",
+      api_method: :test_notification, include_parse_error: false
   end
 end
