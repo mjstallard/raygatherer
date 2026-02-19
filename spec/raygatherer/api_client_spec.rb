@@ -835,4 +835,52 @@ RSpec.describe Raygatherer::ApiClient do
       method_call: ->(c) { c.set_display_state('"Recording"') },
       expected_code: "200"
   end
+
+  describe "#fetch_time" do
+    let(:time_response) do
+      {
+        "system_time" => "2024-12-15T18:30:45+00:00",
+        "adjusted_time" => "2024-12-15T18:30:50+00:00",
+        "offset_seconds" => 5
+      }
+    end
+
+    it "parses JSON response with system_time, adjusted_time, and offset_seconds" do
+      stub_request(:get, "#{host}/api/time")
+        .to_return(status: 200, body: ::JSON.generate(time_response))
+
+      result = client.fetch_time
+
+      expect(result["system_time"]).to eq("2024-12-15T18:30:45+00:00")
+      expect(result["adjusted_time"]).to eq("2024-12-15T18:30:50+00:00")
+      expect(result["offset_seconds"]).to eq(5)
+    end
+
+    it_behaves_like "API client GET error handling",
+      path: "/api/time",
+      method_call: ->(c) { c.fetch_time } do
+      let(:success_body) { ::JSON.generate(time_response) }
+    end
+  end
+
+  describe "#set_time_offset" do
+    it "POSTs JSON body with offset_seconds to /api/time-offset" do
+      stub_request(:post, "#{host}/api/time-offset")
+        .with(
+          body: '{"offset_seconds":5}',
+          headers: {"Content-Type" => "application/json"}
+        )
+        .to_return(status: 200, body: "")
+
+      client.set_time_offset(5)
+
+      expect(WebMock).to have_requested(:post, "#{host}/api/time-offset")
+        .with(body: '{"offset_seconds":5}')
+    end
+
+    it_behaves_like "API client POST error handling",
+      path: "/api/time-offset",
+      method_call: ->(c) { c.set_time_offset(5) },
+      expected_code: "200"
+  end
 end

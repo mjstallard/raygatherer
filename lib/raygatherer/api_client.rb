@@ -73,6 +73,18 @@ module Raygatherer
       end
     end
 
+    def fetch_time
+      get("/api/time") do |body|
+        parse_json(body)
+      end
+    end
+
+    def set_time_offset(offset_seconds)
+      post("/api/time-offset", expected_code: "200",
+        body: ::JSON.generate({offset_seconds: offset_seconds}),
+        content_type: "application/json")
+    end
+
     def fetch_log
       get("/api/log") do |body|
         log_verbose "Received log (#{body.bytesize} bytes)"

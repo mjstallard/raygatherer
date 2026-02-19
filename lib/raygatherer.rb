@@ -16,6 +16,8 @@ require_relative "raygatherer/formatters/analysis_report_json"
 require_relative "raygatherer/formatters/analysis_report_human"
 require_relative "raygatherer/formatters/config_json"
 require_relative "raygatherer/formatters/config_human"
+require_relative "raygatherer/formatters/time_json"
+require_relative "raygatherer/formatters/time_human"
 require_relative "raygatherer/spinner"
 require_relative "raygatherer/commands/base"
 require_relative "raygatherer/commands/alerts"
@@ -33,6 +35,8 @@ require_relative "raygatherer/commands/config/show"
 require_relative "raygatherer/commands/config/set"
 require_relative "raygatherer/commands/config/test_notification"
 require_relative "raygatherer/commands/debug/display_state"
+require_relative "raygatherer/commands/time/show"
+require_relative "raygatherer/commands/time/sync"
 
 module Raygatherer
   class Error < StandardError; end
