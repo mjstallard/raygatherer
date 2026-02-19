@@ -68,8 +68,9 @@ module Raygatherer
 
       def format_time(time_string)
         return "" unless time_string
-
         Time.parse(time_string).strftime("%Y-%m-%d %H:%M:%S")
+      rescue ArgumentError
+        time_string
       end
     end
   end

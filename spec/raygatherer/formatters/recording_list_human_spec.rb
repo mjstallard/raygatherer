@@ -127,5 +127,18 @@ RSpec.describe Raygatherer::Formatters::RecordingListHuman do
 
       expect(result).not_to include("Stop reason:")
     end
+
+    it "falls back to raw string on unparseable timestamp" do
+      manifest = {
+        "entries" => [
+          {"name" => "x", "start_time" => "not-a-date",
+           "last_message_time" => "2025-02-07T15:30:00+00:00", "qmdl_size_bytes" => 0}
+        ],
+        "current_entry" => nil
+      }
+      result = subject.format(manifest)
+
+      expect(result).to include("not-a-date")
+    end
   end
 end
