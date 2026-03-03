@@ -6,8 +6,9 @@ RSpec.describe Raygatherer::Formatters::ConfigHuman do
       {
         "qmdl_store_path" => "/data/rayhunter",
         "port" => 8080,
-        "readonly_port" => 8081,
-        "notification_url" => "https://example.com/notify",
+        "ntfy_url" => "https://ntfy.sh/my-topic",
+        "min_space_to_start_recording_mb" => 10,
+        "min_space_to_continue_recording_mb" => 5,
         "analyzers" => {
           "null_cipher" => true,
           "imsi_catcher" => false
@@ -21,30 +22,66 @@ RSpec.describe Raygatherer::Formatters::ConfigHuman do
       expect(output).to include("Port: 8080")
     end
 
-    it "shows readonly port" do
-      output = described_class.new.format(full_config)
-
-      expect(output).to include("Readonly port: 8081")
-    end
-
     it "shows QMDL store path" do
       output = described_class.new.format(full_config)
 
       expect(output).to include("QMDL store path: /data/rayhunter")
     end
 
-    it "shows notification URL when set" do
+    it "shows ntfy URL when set" do
       output = described_class.new.format(full_config)
 
-      expect(output).to include("Notification URL: https://example.com/notify")
+      expect(output).to include("Notification URL: https://ntfy.sh/my-topic")
     end
 
-    it "shows (not set) when notification URL is nil" do
-      config = full_config.merge("notification_url" => nil)
+    it "shows (not set) when ntfy URL is nil" do
+      config = full_config.merge("ntfy_url" => nil)
 
       output = described_class.new.format(config)
 
       expect(output).to include("Notification URL: (not set)")
+    end
+
+    it "falls back to legacy notification_url field" do
+      config = full_config.except("ntfy_url").merge("notification_url" => "https://example.com/old")
+
+      output = described_class.new.format(config)
+
+      expect(output).to include("Notification URL: https://example.com/old")
+    end
+
+    it "shows min space to start recording" do
+      output = described_class.new.format(full_config)
+
+      expect(output).to include("Min space to start recording: 10 MB")
+    end
+
+    it "shows min space to continue recording" do
+      output = described_class.new.format(full_config)
+
+      expect(output).to include("Min space to continue recording: 5 MB")
+    end
+
+    it "omits disk space fields when not present" do
+      config = full_config.except("min_space_to_start_recording_mb", "min_space_to_continue_recording_mb")
+
+      output = described_class.new.format(config)
+
+      expect(output).not_to include("Min space")
+    end
+
+    it "shows readonly port when present (legacy)" do
+      config = full_config.merge("readonly_port" => 8081)
+
+      output = described_class.new.format(config)
+
+      expect(output).to include("Readonly port: 8081")
+    end
+
+    it "omits readonly port when not present" do
+      output = described_class.new.format(full_config)
+
+      expect(output).not_to include("Readonly port")
     end
 
     it "shows analyzers section" do
