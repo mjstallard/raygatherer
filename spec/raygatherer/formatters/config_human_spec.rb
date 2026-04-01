@@ -6,7 +6,13 @@ RSpec.describe Raygatherer::Formatters::ConfigHuman do
       {
         "qmdl_store_path" => "/data/rayhunter",
         "port" => 8080,
+        "device" => "Orbic",
+        "debug_mode" => false,
+        "ui_level" => 1,
+        "colorblind_mode" => false,
+        "key_input_mode" => 0,
         "ntfy_url" => "https://ntfy.sh/my-topic",
+        "enabled_notifications" => ["Warning", "LowBattery"],
         "min_space_to_start_recording_mb" => 10,
         "min_space_to_continue_recording_mb" => 5,
         "analyzers" => {
@@ -14,6 +20,42 @@ RSpec.describe Raygatherer::Formatters::ConfigHuman do
           "imsi_catcher" => false
         }
       }
+    end
+
+    it "shows device" do
+      output = described_class.new.format(full_config)
+
+      expect(output).to include("Device: Orbic")
+    end
+
+    it "shows debug mode" do
+      output = described_class.new.format(full_config)
+
+      expect(output).to include("Debug mode: false")
+    end
+
+    it "shows UI level" do
+      output = described_class.new.format(full_config)
+
+      expect(output).to include("UI level: 1")
+    end
+
+    it "shows colorblind mode" do
+      output = described_class.new.format(full_config)
+
+      expect(output).to include("Colorblind mode: false")
+    end
+
+    it "shows key input mode" do
+      output = described_class.new.format(full_config)
+
+      expect(output).to include("Key input mode: 0")
+    end
+
+    it "shows enabled notifications" do
+      output = described_class.new.format(full_config)
+
+      expect(output).to include("Notifications enabled: Warning, LowBattery")
     end
 
     it "shows port" do
