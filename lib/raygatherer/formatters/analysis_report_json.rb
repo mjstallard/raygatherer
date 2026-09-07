@@ -6,7 +6,7 @@ module Raygatherer
   module Formatters
     class AnalysisReportJSON
       def format(data)
-        ::JSON.generate({"metadata" => data[:metadata], "rows" => data[:rows]})
+        ::JSON.generate(data)
       end
     end
   end
