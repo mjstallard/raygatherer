@@ -9,6 +9,10 @@ module Raygatherer
   module Commands
     module Analysis
       class Run < Base
+        def self.supports_json?
+          true
+        end
+
         def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
           super
           @all = false
@@ -71,7 +75,7 @@ module Raygatherer
           output.puts "    --all                            Queue all recordings for analysis"
           output.puts "    -h, --help                       Show this help message"
           output.puts ""
-          print_global_options(output, json: true)
+          print_global_options(output)
           output.puts ""
           output.puts "Examples:"
           output.puts "  raygatherer --host http://192.168.1.100:8080 analysis run 1738950000"

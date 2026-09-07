@@ -10,6 +10,10 @@ module Raygatherer
         new(argv, **kwargs).run
       end
 
+      def self.supports_json?
+        false
+      end
+
       def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false, **_kwargs)
         @argv = argv
         @stdout = stdout
@@ -27,9 +31,9 @@ module Raygatherer
         end
       end
 
-      def print_global_options(output, json: false)
+      def print_global_options(output)
         output.puts "Global options (see 'raygatherer --help'):"
-        if json
+        if self.class.supports_json?
           output.puts "    --host, --basic-auth-user, --basic-auth-password, --json, --verbose"
         else
           output.puts "    --host, --basic-auth-user, --basic-auth-password, --verbose"

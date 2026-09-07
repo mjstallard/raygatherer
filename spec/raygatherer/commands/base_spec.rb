@@ -46,15 +46,35 @@ RSpec.describe Raygatherer::Commands::Base do
     expect { command.run }.to raise_error(Raygatherer::CLI::EarlyExit)
   end
 
-  it "prints global options with json flag" do
+  it "omits --json from global options by default" do
     command, _stdout, stderr = build_command(-> { 0 })
     output = StringIO.new
 
-    command.send(:print_global_options, output, json: true)
+    command.send(:print_global_options, output)
+
+    expect(output.string).not_to include("--json")
+    expect(output.string).to include("--host")
+    expect(stderr.string).to eq("")
+  end
+
+  it "includes --json in global options when the command supports it" do
+    klass = Class.new(described_class) do
+      def self.supports_json?
+        true
+      end
+
+      def initialize(argv, stdout:, stderr:, action:, api_client: nil)
+        super(argv, stdout: stdout, stderr: stderr, api_client: api_client)
+        @action = action
+      end
+    end
+    command = klass.new([], stdout: StringIO.new, stderr: StringIO.new, action: -> { 0 })
+    output = StringIO.new
+
+    command.send(:print_global_options, output)
 
     expect(output.string).to include("--json")
     expect(output.string).to include("--host")
-    expect(stderr.string).to eq("")
   end
 
   describe "#warn_if_rayhunter_outdated" do

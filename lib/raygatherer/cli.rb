@@ -16,28 +16,28 @@ module Raygatherer
     end
 
     ROUTES = {
-      ["log", nil] => {klass: Commands::Log, json: false},
-      ["stats", nil] => {klass: Commands::Stats, json: true},
-      ["alerts", nil] => {klass: Commands::Alerts, json: true},
-      ["recording", "list"] => {klass: Commands::Recording::List, json: true},
-      ["recording", "download"] => {klass: Commands::Recording::Download, json: false},
-      ["recording", "delete"] => {klass: Commands::Recording::Delete, json: false},
-      ["recording", "stop"] => {klass: Commands::Recording::Stop, json: false},
-      ["recording", "start"] => {klass: Commands::Recording::Start, json: false},
-      ["analysis", "status"] => {klass: Commands::Analysis::Status, json: true},
-      ["analysis", "run"] => {klass: Commands::Analysis::Run, json: true},
-      ["analysis", "report"] => {klass: Commands::Analysis::Report, json: true},
-      ["config", "show"] => {klass: Commands::Config::Show, json: true},
-      ["config", "set"] => {klass: Commands::Config::Set, json: false},
-      ["config", "test-notification"] => {klass: Commands::Config::TestNotification, json: false},
-      ["debug", "display-state"] => {klass: Commands::Debug::DisplayState, json: false},
-      ["time", "show"] => {klass: Commands::Time::Show, json: true},
-      ["time", "sync"] => {klass: Commands::Time::Sync, json: false},
-      ["update", "status"] => {klass: Commands::Update::Status, json: true},
-      ["gps", "show"] => {klass: Commands::Gps::Show, json: true},
-      ["gps", "set"] => {klass: Commands::Gps::Set, json: false},
-      ["wifi", "show"] => {klass: Commands::Wifi::Show, json: true},
-      ["wifi", "scan"] => {klass: Commands::Wifi::Scan, json: true}
+      ["log", nil] => Commands::Log,
+      ["stats", nil] => Commands::Stats,
+      ["alerts", nil] => Commands::Alerts,
+      ["recording", "list"] => Commands::Recording::List,
+      ["recording", "download"] => Commands::Recording::Download,
+      ["recording", "delete"] => Commands::Recording::Delete,
+      ["recording", "stop"] => Commands::Recording::Stop,
+      ["recording", "start"] => Commands::Recording::Start,
+      ["analysis", "status"] => Commands::Analysis::Status,
+      ["analysis", "run"] => Commands::Analysis::Run,
+      ["analysis", "report"] => Commands::Analysis::Report,
+      ["config", "show"] => Commands::Config::Show,
+      ["config", "set"] => Commands::Config::Set,
+      ["config", "test-notification"] => Commands::Config::TestNotification,
+      ["debug", "display-state"] => Commands::Debug::DisplayState,
+      ["time", "show"] => Commands::Time::Show,
+      ["time", "sync"] => Commands::Time::Sync,
+      ["update", "status"] => Commands::Update::Status,
+      ["gps", "show"] => Commands::Gps::Show,
+      ["gps", "set"] => Commands::Gps::Set,
+      ["wifi", "show"] => Commands::Wifi::Show,
+      ["wifi", "scan"] => Commands::Wifi::Scan
     }.freeze
 
     def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
@@ -83,14 +83,14 @@ module Raygatherer
       command = @argv.shift
       subcommand = @argv.first
 
-      route = ROUTES[[command, subcommand]]
-      if route
+      klass = ROUTES[[command, subcommand]]
+      if klass
         @argv.shift # consume subcommand
       else
-        route = ROUTES[[command, nil]]
+        klass = ROUTES[[command, nil]]
       end
 
-      unless route
+      unless klass
         @stderr.puts "Unknown command: #{[command, subcommand].compact.join(" ")}"
         show_help(@stderr)
         return Commands::EXIT_CODE_ERROR
@@ -99,9 +99,9 @@ module Raygatherer
       return Commands::EXIT_CODE_ERROR unless require_host!
 
       kwargs = {stdout: @stdout, stderr: @stderr, api_client: build_api_client}
-      kwargs[:json] = @json if route[:json]
+      kwargs[:json] = @json if klass.supports_json?
 
-      route[:klass].run(@argv, **kwargs)
+      klass.run(@argv, **kwargs)
     rescue Config::ConfigError => e
       @stderr.puts "Error: #{e.message}"
       Commands::EXIT_CODE_ERROR

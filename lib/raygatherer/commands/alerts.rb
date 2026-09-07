@@ -20,6 +20,10 @@ module Raygatherer
       EXIT_CODE_MEDIUM_SEVERITY = 11
       EXIT_CODE_HIGH_SEVERITY = 12
 
+      def self.supports_json?
+        true
+      end
+
       def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
         super
         @latest = false
@@ -129,7 +133,7 @@ module Raygatherer
         output.puts "    --latest                         Show only alerts from the most recent message"
         output.puts "    -h, --help                       Show this help message"
         output.puts ""
-        print_global_options(output, json: true)
+        print_global_options(output)
         output.puts ""
         output.puts "Exit Codes:"
         output.puts "    #{EXIT_CODE_SUCCESS}   No alerts detected"

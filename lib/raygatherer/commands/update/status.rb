@@ -9,6 +9,10 @@ module Raygatherer
   module Commands
     module Update
       class Status < Base
+        def self.supports_json?
+          true
+        end
+
         EXIT_CODE_UPDATE_AVAILABLE = 20
 
         def run
@@ -44,7 +48,7 @@ module Raygatherer
           output.puts "Options:"
           output.puts "    -h, --help                       Show this help message"
           output.puts ""
-          print_global_options(output, json: true)
+          print_global_options(output)
           output.puts ""
           output.puts "Exit Codes:"
           output.puts "    #{EXIT_CODE_SUCCESS}   Up to date (or auto_check_updates is disabled on the device)"

@@ -9,6 +9,10 @@ module Raygatherer
   module Commands
     module Wifi
       class Show < Base
+        def self.supports_json?
+          true
+        end
+
         def run
           with_error_handling do
             parse_options
@@ -43,7 +47,7 @@ module Raygatherer
           output.puts "Options:"
           output.puts "    -h, --help                       Show this help message"
           output.puts ""
-          print_global_options(output, json: true)
+          print_global_options(output)
           output.puts ""
           output.puts "Examples:"
           output.puts "  raygatherer --host http://192.168.1.100:8080 wifi show"

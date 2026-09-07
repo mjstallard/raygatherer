@@ -9,6 +9,10 @@ module Raygatherer
   module Commands
     module Analysis
       class Report < Base
+        def self.supports_json?
+          true
+        end
+
         def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
           super
           @live = false
@@ -64,7 +68,7 @@ module Raygatherer
           output.puts "        --live                           Show analysis report for the currently active recording"
           output.puts "    -h, --help                           Show this help message"
           output.puts ""
-          print_global_options(output, json: true)
+          print_global_options(output)
           output.puts ""
           output.puts "Examples:"
           output.puts "  raygatherer --host http://192.168.1.100:8080 analysis report 1738950000"
