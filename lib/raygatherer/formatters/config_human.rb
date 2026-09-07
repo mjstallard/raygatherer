@@ -28,6 +28,28 @@ module Raygatherer
           lines << "Min space to continue recording: #{config["min_space_to_continue_recording_mb"]} MB"
         end
 
+        lines << "Auto check updates: #{config["auto_check_updates"]}" if config.key?("auto_check_updates")
+        lines << "Clock sync mode: #{config["clock_sync_mode"]}" if config.key?("clock_sync_mode")
+        lines << "GPS mode: #{config["gps_mode"]}" if config.key?("gps_mode")
+        lines << "GPS fixed latitude: #{config["gps_fixed_latitude"]}" if config["gps_fixed_latitude"]
+        lines << "GPS fixed longitude: #{config["gps_fixed_longitude"]}" if config["gps_fixed_longitude"]
+        lines << "WiFi enabled: #{config["wifi_enabled"]}" if config.key?("wifi_enabled")
+        lines << "WiFi SSID: #{config["wifi_ssid"]}" if config["wifi_ssid"]
+        lines << "WiFi security: #{config["wifi_security"]}" if config["wifi_security"]
+        lines << "DNS servers: #{config["dns_servers"].join(", ")}" if config["dns_servers"]&.any?
+
+        webdav = config["webdav"]
+        if webdav && !webdav["url"].to_s.empty?
+          lines << ""
+          lines << "WebDAV:"
+          lines << "  URL: #{webdav["url"]}"
+          lines << "  Username: #{webdav["username"]}" if webdav["username"]
+          lines << "  Upload timeout: #{webdav["upload_timeout_secs"]}s" if webdav.key?("upload_timeout_secs")
+          lines << "  Poll interval: #{webdav["poll_interval_secs"]}s" if webdav.key?("poll_interval_secs")
+          lines << "  Min age: #{webdav["min_age_secs"]}s" if webdav.key?("min_age_secs")
+          lines << "  Delete on upload: #{webdav["delete_on_upload"]}" if webdav.key?("delete_on_upload")
+        end
+
         analyzers = config["analyzers"]
         if analyzers
           lines << ""
