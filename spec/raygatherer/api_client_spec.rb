@@ -936,6 +936,51 @@ RSpec.describe Raygatherer::ApiClient do
       expected_code: "200"
   end
 
+  describe "#fetch_wifi_status" do
+    let(:wifi_status_response) do
+      {"state" => "connected", "ssid" => "attic-network", "ip" => "192.168.1.50"}
+    end
+
+    it "parses JSON response from /api/wifi-status" do
+      stub_request(:get, "#{host}/api/wifi-status")
+        .to_return(status: 200, body: ::JSON.generate(wifi_status_response))
+
+      result = client.fetch_wifi_status
+
+      expect(result["state"]).to eq("connected")
+      expect(result["ssid"]).to eq("attic-network")
+    end
+
+    it_behaves_like "API client GET error handling",
+      path: "/api/wifi-status",
+      method_call: ->(c) { c.fetch_wifi_status } do
+      let(:success_body) { ::JSON.generate(wifi_status_response) }
+    end
+  end
+
+  describe "#scan_wifi" do
+    let(:networks_response) do
+      [{"ssid" => "attic-network", "signal_dbm" => -45, "security" => "wpa_psk"}]
+    end
+
+    it "POSTs to /api/wifi-scan and parses the JSON array response" do
+      stub_request(:post, "#{host}/api/wifi-scan")
+        .to_return(status: 200, body: ::JSON.generate(networks_response))
+
+      result = client.scan_wifi
+
+      expect(result.length).to eq(1)
+      expect(result.first["ssid"]).to eq("attic-network")
+    end
+
+    it_behaves_like "API client POST error handling",
+      path: "/api/wifi-scan",
+      method_call: ->(c) { c.scan_wifi },
+      expected_code: "200" do
+      let(:success_body) { ::JSON.generate(networks_response) }
+    end
+  end
+
   describe "#set_time_offset" do
     it "POSTs JSON body with offset_seconds to /api/time-offset" do
       stub_request(:post, "#{host}/api/time-offset")

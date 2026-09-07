@@ -35,7 +35,9 @@ module Raygatherer
       ["time", "sync"] => {file: "commands/time/sync", klass: "Commands::Time::Sync", json: false},
       ["update", "status"] => {file: "commands/update/status", klass: "Commands::Update::Status", json: true},
       ["gps", "show"] => {file: "commands/gps/show", klass: "Commands::Gps::Show", json: true},
-      ["gps", "set"] => {file: "commands/gps/set", klass: "Commands::Gps::Set", json: false}
+      ["gps", "set"] => {file: "commands/gps/set", klass: "Commands::Gps::Set", json: false},
+      ["wifi", "show"] => {file: "commands/wifi/show", klass: "Commands::Wifi::Show", json: true},
+      ["wifi", "scan"] => {file: "commands/wifi/scan", klass: "Commands::Wifi::Scan", json: true}
     }.freeze
 
     def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
@@ -195,6 +197,8 @@ module Raygatherer
       output.puts "    update status                    Show rayhunter daemon update status"
       output.puts "    gps show                         Show last known GPS position"
       output.puts "    gps set LAT LON                  Submit a GPS position (requires gps_mode=Api on device)"
+      output.puts "    wifi show                        Show wifi client connection status"
+      output.puts "    wifi scan                        Scan for available wifi networks"
       output.puts "    log                              Download the device log"
       output.puts "    stats                            Show device system stats"
       output.puts ""

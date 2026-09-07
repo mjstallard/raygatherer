@@ -89,6 +89,16 @@ module Raygatherer
         content_type: "application/json")
     end
 
+    def fetch_wifi_status
+      get("/api/wifi-status") do |body|
+        parse_json(body)
+      end
+    end
+
+    def scan_wifi
+      parse_json(post("/api/wifi-scan", expected_code: "200"))
+    end
+
     def fetch_update_status
       get("/api/update-status") do |body|
         parse_json(body)

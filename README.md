@@ -19,6 +19,7 @@ Currently implemented:
 - config show/set/test-notification
 - rayhunter update status, with a dedicated exit code for scripting
 - GPS position show/set (requires the device's gps_mode config to be set to Api)
+- wifi client status and network scan
 - JSON output mode for scriptable commands
 - optional basic auth and config file support
 - debug utilities (display-state)
@@ -166,6 +167,8 @@ Main commands:
 - `update status`
 - `gps show`
 - `gps set LAT LON` (requires gps_mode=Api on the device)
+- `wifi show`
+- `wifi scan`
 - `debug display-state <recording|paused|warning> [--severity low|medium|high]`
 
 For command-specific help:

@@ -119,6 +119,12 @@ RSpec.describe "CLI Integration" do
   it_behaves_like "a subcommand",
     args: ["gps", "set", "51.5074", "-0.1278"], command_name: "gps set"
 
+  it_behaves_like "a subcommand",
+    args: ["wifi", "show"], command_name: "wifi show"
+
+  it_behaves_like "a subcommand",
+    args: ["wifi", "scan"], command_name: "wifi scan"
+
   # Commands with custom validation
   describe "raygatherer recording download" do
     it "requires a recording name argument" do
@@ -359,7 +365,8 @@ RSpec.describe "CLI Integration" do
       "debug display-state",
       "time show", "time sync",
       "update status",
-      "gps show", "gps set"
+      "gps show", "gps set",
+      "wifi show", "wifi scan"
     ].each do |cmd|
       it_behaves_like "visible in main help", cmd
     end
