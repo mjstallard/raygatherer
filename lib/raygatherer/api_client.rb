@@ -192,6 +192,11 @@ module Raygatherer
       raise
     end
 
+    # expected_code defaults to "202" (Accepted), matching the daemon's behavior for most POST
+    # actions (recordings, analysis, config). A handful of endpoints (gps, wifi-scan, time-offset,
+    # test-notification, display-state) respond "200" instead — pass expected_code: "200" for
+    # those. This isn't documented by rayhunter anywhere; it's observed per-endpoint behavior, so
+    # verify against the real device if you're adding a new one and unsure which applies.
     def post(path, expected_code: "202", body: nil, content_type: nil)
       ok_status_text = (expected_code == "202") ? "Accepted" : "OK"
       response, resp_body = request(:post, path, ok_code: expected_code,
@@ -205,16 +210,20 @@ module Raygatherer
     end
 
     def request(method, path, ok_code:, ok_status_text:, body: nil, content_type: nil)
-      url = "#{@host}#{path}"
-      uri = URI.parse(url)
+      with_connection_error_handling do
+        url = "#{@host}#{path}"
+        uri = URI.parse(url)
 
-      log_verbose "HTTP #{method.to_s.upcase} #{url}"
-      log_verbose "Basic Auth: user=#{@username}" if @username
+        log_verbose "HTTP #{method.to_s.upcase} #{url}"
+        log_verbose "Basic Auth: user=#{@username}" if @username
 
-      req = build_request(method, uri, body: body, content_type: content_type)
-      response, resp_body = execute_request(uri, req, ok_code: ok_code, ok_status_text: ok_status_text)
+        req = build_request(method, uri, body: body, content_type: content_type)
+        execute_request(uri, req, ok_code: ok_code, ok_status_text: ok_status_text)
+      end
+    end
 
-      [response, resp_body]
+    def with_connection_error_handling
+      yield
     rescue SocketError, Errno::ECONNREFUSED, Net::OpenTimeout, Net::ReadTimeout => e
       log_verbose "Connection error: #{e.class} - #{e.message}"
       raise ConnectionError, "Failed to connect to #{@host}: #{e.message}"
@@ -261,28 +270,26 @@ module Raygatherer
       start_time = Time.now
       log_verbose "Request started at: #{start_time.utc}"
 
-      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
-        request = Net::HTTP::Get.new(uri.request_uri)
-        request.basic_auth(@username, @password) if @username && @password
+      with_connection_error_handling do
+        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
+          req = build_request(:get, uri)
 
-        http.request(request) do |response|
-          elapsed = Time.now - start_time
-          status_text = (response.code == "200") ? "OK" : response.message.to_s
-          log_verbose "Response received: #{response.code} #{status_text} (#{format("%.3f", elapsed)}s)"
+          http.request(req) do |response|
+            elapsed = Time.now - start_time
+            status_text = (response.code == "200") ? "OK" : response.message.to_s
+            log_verbose "Response received: #{response.code} #{status_text} (#{format("%.3f", elapsed)}s)"
 
-          unless response.is_a?(Net::HTTPSuccess)
-            error_body = response.read_body
-            raise ApiError, server_error_message(response, error_body)
-          end
+            unless response.is_a?(Net::HTTPSuccess)
+              error_body = response.read_body
+              raise ApiError, server_error_message(response, error_body)
+            end
 
-          response.read_body do |chunk|
-            io.write(chunk)
+            response.read_body do |chunk|
+              io.write(chunk)
+            end
           end
         end
       end
-    rescue SocketError, Errno::ECONNREFUSED, Net::OpenTimeout, Net::ReadTimeout => e
-      log_verbose "Connection error: #{e.class} - #{e.message}"
-      raise ConnectionError, "Failed to connect to #{@host}: #{e.message}"
     end
 
     def server_error_message(response, body)
