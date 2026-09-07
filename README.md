@@ -17,6 +17,7 @@ Currently implemented:
 - system stats and raw log output
 - device clock show and sync
 - config show/set/test-notification
+- rayhunter update status, with a dedicated exit code for scripting
 - JSON output mode for scriptable commands
 - optional basic auth and config file support
 - debug utilities (display-state)
@@ -161,6 +162,7 @@ Main commands:
 - `config test-notification`
 - `stats`
 - `log`
+- `update status`
 - `debug display-state <recording|paused|warning> [--severity low|medium|high]`
 
 For command-specific help:
@@ -193,6 +195,21 @@ Example:
 raygatherer --host http://192.168.1.1 alerts
 code=$?
 [ "$code" -ge 11 ] && echo "medium or high alert"
+```
+
+## Update Status Exit Codes
+
+`update status` returns a dedicated code so a cron job can react without parsing output:
+
+- `0`: up to date (or `auto_check_updates` is disabled on the device)
+- `1`: error
+- `20`: update available
+
+Example:
+
+```bash
+raygatherer --host http://192.168.1.1 update status
+[ $? -eq 20 ] && echo "rayhunter update available"
 ```
 
 ## JSON Output

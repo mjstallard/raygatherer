@@ -863,6 +863,31 @@ RSpec.describe Raygatherer::ApiClient do
     end
   end
 
+  describe "#fetch_update_status" do
+    let(:update_status_response) do
+      {
+        "current_version" => "0.12.0",
+        "update_available" => false
+      }
+    end
+
+    it "parses JSON response from /api/update-status" do
+      stub_request(:get, "#{host}/api/update-status")
+        .to_return(status: 200, body: ::JSON.generate(update_status_response))
+
+      result = client.fetch_update_status
+
+      expect(result["current_version"]).to eq("0.12.0")
+      expect(result["update_available"]).to be false
+    end
+
+    it_behaves_like "API client GET error handling",
+      path: "/api/update-status",
+      method_call: ->(c) { c.fetch_update_status } do
+      let(:success_body) { ::JSON.generate(update_status_response) }
+    end
+  end
+
   describe "#set_time_offset" do
     it "POSTs JSON body with offset_seconds to /api/time-offset" do
       stub_request(:post, "#{host}/api/time-offset")

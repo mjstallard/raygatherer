@@ -109,6 +109,10 @@ RSpec.describe "CLI Integration" do
   it_behaves_like "a subcommand",
     args: ["time", "sync"], command_name: "time sync"
 
+  it_behaves_like "a subcommand",
+    args: ["update", "status"], command_name: "update status",
+    help_includes: ["Exit Codes:"]
+
   # Commands with custom validation
   describe "raygatherer recording download" do
     it "requires a recording name argument" do
@@ -347,7 +351,8 @@ RSpec.describe "CLI Integration" do
       "analysis status", "analysis run", "analysis report",
       "config show", "config set", "config test-notification",
       "debug display-state",
-      "time show", "time sync"
+      "time show", "time sync",
+      "update status"
     ].each do |cmd|
       it_behaves_like "visible in main help", cmd
     end

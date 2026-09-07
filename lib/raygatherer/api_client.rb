@@ -79,6 +79,12 @@ module Raygatherer
       end
     end
 
+    def fetch_update_status
+      get("/api/update-status") do |body|
+        parse_json(body)
+      end
+    end
+
     def set_time_offset(offset_seconds)
       post("/api/time-offset", expected_code: "200",
         body: ::JSON.generate({offset_seconds: offset_seconds}),

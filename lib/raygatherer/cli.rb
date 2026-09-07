@@ -32,7 +32,8 @@ module Raygatherer
       ["config", "test-notification"] => {file: "commands/config/test_notification", klass: "Commands::Config::TestNotification", json: false},
       ["debug", "display-state"] => {file: "commands/debug/display_state", klass: "Commands::Debug::DisplayState", json: false},
       ["time", "show"] => {file: "commands/time/show", klass: "Commands::Time::Show", json: true},
-      ["time", "sync"] => {file: "commands/time/sync", klass: "Commands::Time::Sync", json: false}
+      ["time", "sync"] => {file: "commands/time/sync", klass: "Commands::Time::Sync", json: false},
+      ["update", "status"] => {file: "commands/update/status", klass: "Commands::Update::Status", json: true}
     }.freeze
 
     def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
@@ -189,6 +190,7 @@ module Raygatherer
       output.puts "    debug display-state STATE         Set device display state (recording, paused, warning)"
       output.puts "    time show                        Show device time (system, adjusted, offset)"
       output.puts "    time sync                        Sync device clock to this machine's time"
+      output.puts "    update status                    Show rayhunter daemon update status"
       output.puts "    log                              Download the device log"
       output.puts "    stats                            Show device system stats"
       output.puts ""
