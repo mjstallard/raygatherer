@@ -16,28 +16,28 @@ module Raygatherer
     end
 
     ROUTES = {
-      ["log", nil] => {klass: "Commands::Log", json: false},
-      ["stats", nil] => {klass: "Commands::Stats", json: true},
-      ["alerts", nil] => {klass: "Commands::Alerts", json: true},
-      ["recording", "list"] => {klass: "Commands::Recording::List", json: true},
-      ["recording", "download"] => {klass: "Commands::Recording::Download", json: false},
-      ["recording", "delete"] => {klass: "Commands::Recording::Delete", json: false},
-      ["recording", "stop"] => {klass: "Commands::Recording::Stop", json: false},
-      ["recording", "start"] => {klass: "Commands::Recording::Start", json: false},
-      ["analysis", "status"] => {klass: "Commands::Analysis::Status", json: true},
-      ["analysis", "run"] => {klass: "Commands::Analysis::Run", json: true},
-      ["analysis", "report"] => {klass: "Commands::Analysis::Report", json: true},
-      ["config", "show"] => {klass: "Commands::Config::Show", json: true},
-      ["config", "set"] => {klass: "Commands::Config::Set", json: false},
-      ["config", "test-notification"] => {klass: "Commands::Config::TestNotification", json: false},
-      ["debug", "display-state"] => {klass: "Commands::Debug::DisplayState", json: false},
-      ["time", "show"] => {klass: "Commands::Time::Show", json: true},
-      ["time", "sync"] => {klass: "Commands::Time::Sync", json: false},
-      ["update", "status"] => {klass: "Commands::Update::Status", json: true},
-      ["gps", "show"] => {klass: "Commands::Gps::Show", json: true},
-      ["gps", "set"] => {klass: "Commands::Gps::Set", json: false},
-      ["wifi", "show"] => {klass: "Commands::Wifi::Show", json: true},
-      ["wifi", "scan"] => {klass: "Commands::Wifi::Scan", json: true}
+      ["log", nil] => {klass: Commands::Log, json: false},
+      ["stats", nil] => {klass: Commands::Stats, json: true},
+      ["alerts", nil] => {klass: Commands::Alerts, json: true},
+      ["recording", "list"] => {klass: Commands::Recording::List, json: true},
+      ["recording", "download"] => {klass: Commands::Recording::Download, json: false},
+      ["recording", "delete"] => {klass: Commands::Recording::Delete, json: false},
+      ["recording", "stop"] => {klass: Commands::Recording::Stop, json: false},
+      ["recording", "start"] => {klass: Commands::Recording::Start, json: false},
+      ["analysis", "status"] => {klass: Commands::Analysis::Status, json: true},
+      ["analysis", "run"] => {klass: Commands::Analysis::Run, json: true},
+      ["analysis", "report"] => {klass: Commands::Analysis::Report, json: true},
+      ["config", "show"] => {klass: Commands::Config::Show, json: true},
+      ["config", "set"] => {klass: Commands::Config::Set, json: false},
+      ["config", "test-notification"] => {klass: Commands::Config::TestNotification, json: false},
+      ["debug", "display-state"] => {klass: Commands::Debug::DisplayState, json: false},
+      ["time", "show"] => {klass: Commands::Time::Show, json: true},
+      ["time", "sync"] => {klass: Commands::Time::Sync, json: false},
+      ["update", "status"] => {klass: Commands::Update::Status, json: true},
+      ["gps", "show"] => {klass: Commands::Gps::Show, json: true},
+      ["gps", "set"] => {klass: Commands::Gps::Set, json: false},
+      ["wifi", "show"] => {klass: Commands::Wifi::Show, json: true},
+      ["wifi", "scan"] => {klass: Commands::Wifi::Scan, json: true}
     }.freeze
 
     def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
@@ -101,7 +101,7 @@ module Raygatherer
       kwargs = {stdout: @stdout, stderr: @stderr, api_client: build_api_client}
       kwargs[:json] = @json if route[:json]
 
-      resolve_class(route[:klass]).run(@argv, **kwargs)
+      route[:klass].run(@argv, **kwargs)
     rescue Config::ConfigError => e
       @stderr.puts "Error: #{e.message}"
       Commands::EXIT_CODE_ERROR
@@ -148,10 +148,6 @@ module Raygatherer
       return nil unless @host
       ApiClient.new(@host, username: @username, password: @password,
         verbose: @verbose, stderr: @stderr)
-    end
-
-    def resolve_class(name)
-      name.split("::").reduce(Raygatherer) { |mod, part| mod.const_get(part) }
     end
 
     def extract_boolean_flag(flag)

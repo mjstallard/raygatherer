@@ -2,7 +2,6 @@
 
 require_relative "raygatherer/version"
 require_relative "raygatherer/config"
-require_relative "raygatherer/cli"
 require_relative "raygatherer/api_client"
 require_relative "raygatherer/formatters/alerts_human"
 require_relative "raygatherer/formatters/alerts_json"
@@ -50,6 +49,7 @@ require_relative "raygatherer/commands/gps/show"
 require_relative "raygatherer/commands/gps/set"
 require_relative "raygatherer/commands/wifi/show"
 require_relative "raygatherer/commands/wifi/scan"
+require_relative "raygatherer/cli"
 
 module Raygatherer
   class Error < StandardError; end
