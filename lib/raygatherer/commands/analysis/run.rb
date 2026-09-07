@@ -10,8 +10,7 @@ module Raygatherer
     module Analysis
       class Run < Base
         def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
-          super(argv, stdout: stdout, stderr: stderr, api_client: api_client)
-          @json = json
+          super
           @all = false
         end
 

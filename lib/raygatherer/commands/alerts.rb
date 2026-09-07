@@ -21,8 +21,7 @@ module Raygatherer
       EXIT_CODE_HIGH_SEVERITY = 12
 
       def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
-        super(argv, stdout: stdout, stderr: stderr, api_client: api_client)
-        @json = json
+        super
         @latest = false
         @after = nil
         @recording = nil

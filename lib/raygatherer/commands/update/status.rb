@@ -11,11 +11,6 @@ module Raygatherer
       class Status < Base
         EXIT_CODE_UPDATE_AVAILABLE = 20
 
-        def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false)
-          super(argv, stdout: stdout, stderr: stderr, api_client: api_client)
-          @json = json
-        end
-
         def run
           with_error_handling do
             parse_options

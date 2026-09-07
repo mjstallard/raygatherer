@@ -10,11 +10,12 @@ module Raygatherer
         new(argv, **kwargs).run
       end
 
-      def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, **_kwargs)
+      def initialize(argv, stdout: $stdout, stderr: $stderr, api_client: nil, json: false, **_kwargs)
         @argv = argv
         @stdout = stdout
         @stderr = stderr
         @api_client = api_client
+        @json = json
       end
 
       private
