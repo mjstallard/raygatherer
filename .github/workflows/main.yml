@@ -30,3 +30,5 @@ jobs:
         run: bundle exec rspec
       - name: Run linter
         run: bundle exec standardrb
+      - name: Audit dependencies for known CVEs
+        run: bundle exec bundle-audit check --update
