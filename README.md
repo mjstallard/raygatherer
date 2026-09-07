@@ -34,6 +34,10 @@ gem install raygatherer
 
 Requires Ruby >= 3.2.
 
+## Compatibility
+
+Tested against [rayhunter](https://github.com/EFForg/rayhunter/) v0.12.0 (last synced 2026-09-07). Older rayhunter versions may be missing some fields or endpoints raygatherer expects — commands that already have the connected daemon's version on hand (`stats`, `update status`) print a one-line warning to stderr when it's older than that, without blocking anything.
+
 ### From source
 
 ```bash

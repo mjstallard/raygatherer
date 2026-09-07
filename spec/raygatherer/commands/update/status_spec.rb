@@ -62,6 +62,24 @@ RSpec.describe Raygatherer::Commands::Update::Status do
       expect(exit_code).to eq(0)
     end
 
+    it "does not warn on stderr when the connected rayhunter is up to date" do
+      allow(api_client).to receive(:fetch_update_status).and_return(up_to_date_status)
+
+      described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
+
+      expect(stderr.string).to eq("")
+    end
+
+    it "warns on stderr when the connected rayhunter is older than tested" do
+      status = up_to_date_status.merge("current_version" => "0.9.0")
+      allow(api_client).to receive(:fetch_update_status).and_return(status)
+
+      described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
+
+      expect(stderr.string).to include("Warning:")
+      expect(stderr.string).to include("0.9.0")
+    end
+
     it_behaves_like "command error handling", api_method: :fetch_update_status
   end
 end

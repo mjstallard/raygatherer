@@ -19,6 +19,9 @@ module Raygatherer
 
           stats = @api_client.fetch_system_stats
 
+          rayhunter_version = stats.dig("runtime_metadata", "rayhunter_version")
+          warn_if_rayhunter_outdated(rayhunter_version) if rayhunter_version
+
           formatter = @json ? Formatters::StatsJSON.new : Formatters::StatsHuman.new
           @stdout.puts formatter.format(stats)
 

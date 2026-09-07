@@ -56,4 +56,39 @@ RSpec.describe Raygatherer::Commands::Base do
     expect(output.string).to include("--host")
     expect(stderr.string).to eq("")
   end
+
+  describe "#warn_if_rayhunter_outdated" do
+    it "warns on stderr when the connected rayhunter is older than tested" do
+      command, _stdout, stderr = build_command(-> { 0 })
+
+      command.send(:warn_if_rayhunter_outdated, "0.10.2")
+
+      expect(stderr.string).to include("Warning:")
+      expect(stderr.string).to include("0.10.2")
+      expect(stderr.string).to include(Raygatherer::TESTED_RAYHUNTER_VERSION)
+    end
+
+    it "does not warn when the connected rayhunter matches the tested version" do
+      command, _stdout, stderr = build_command(-> { 0 })
+
+      command.send(:warn_if_rayhunter_outdated, Raygatherer::TESTED_RAYHUNTER_VERSION)
+
+      expect(stderr.string).to eq("")
+    end
+
+    it "does not warn when the connected rayhunter is newer than tested" do
+      command, _stdout, stderr = build_command(-> { 0 })
+
+      command.send(:warn_if_rayhunter_outdated, "99.0.0")
+
+      expect(stderr.string).to eq("")
+    end
+
+    it "does not warn and does not raise when the version string is unparseable" do
+      command, _stdout, stderr = build_command(-> { 0 })
+
+      expect { command.send(:warn_if_rayhunter_outdated, "not-a-version") }.not_to raise_error
+      expect(stderr.string).to eq("")
+    end
+  end
 end

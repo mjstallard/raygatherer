@@ -22,6 +22,8 @@ module Raygatherer
 
             status = @api_client.fetch_update_status
 
+            warn_if_rayhunter_outdated(status["current_version"]) if status["current_version"]
+
             formatter = @json ? Formatters::UpdateStatusJSON.new : Formatters::UpdateStatusHuman.new
             @stdout.puts formatter.format(status)
 

@@ -35,6 +35,24 @@ RSpec.describe Raygatherer::Commands::Stats do
         expect(parsed["disk_stats"]["total_size"]).to eq("128G")
         expect(exit_code).to eq(0)
       end
+
+      it "does not warn on stderr when the connected rayhunter is up to date" do
+        allow(api_client).to receive(:fetch_system_stats).and_return(stats)
+
+        described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
+
+        expect(stderr.string).to eq("")
+      end
+
+      it "warns on stderr when the connected rayhunter is older than tested" do
+        old_stats = stats.merge("runtime_metadata" => stats["runtime_metadata"].merge("rayhunter_version" => "0.9.0"))
+        allow(api_client).to receive(:fetch_system_stats).and_return(old_stats)
+
+        described_class.run([], stdout: stdout, stderr: stderr, api_client: api_client)
+
+        expect(stderr.string).to include("Warning:")
+        expect(stderr.string).to include("0.9.0")
+      end
     end
 
     it_behaves_like "command error handling", api_method: :fetch_system_stats

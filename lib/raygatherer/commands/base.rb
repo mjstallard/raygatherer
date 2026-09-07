@@ -36,6 +36,17 @@ module Raygatherer
         @stderr.puts "Error: #{e.message}"
         EXIT_CODE_ERROR
       end
+
+      def warn_if_rayhunter_outdated(rayhunter_version)
+        actual = Gem::Version.new(rayhunter_version)
+        tested = Gem::Version.new(Raygatherer::TESTED_RAYHUNTER_VERSION)
+        return unless actual < tested
+
+        @stderr.puts "Warning: connected rayhunter is v#{rayhunter_version}; raygatherer was last " \
+          "tested against v#{Raygatherer::TESTED_RAYHUNTER_VERSION} — some fields or commands may not be supported."
+      rescue ArgumentError
+        nil
+      end
     end
   end
 end
