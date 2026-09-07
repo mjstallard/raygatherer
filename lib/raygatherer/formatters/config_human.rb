@@ -7,7 +7,6 @@ module Raygatherer
         lines = []
 
         lines << "Port: #{config["port"]}"
-        lines << "Readonly port: #{config["readonly_port"]}" if config.key?("readonly_port")
         lines << "QMDL store path: #{config["qmdl_store_path"]}"
         lines << "Device: #{config["device"]}" if config.key?("device")
         lines << "Debug mode: #{config["debug_mode"]}" if config.key?("debug_mode")

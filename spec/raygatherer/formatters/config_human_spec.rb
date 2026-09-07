@@ -112,20 +112,6 @@ RSpec.describe Raygatherer::Formatters::ConfigHuman do
       expect(output).not_to include("Min space")
     end
 
-    it "shows readonly port when present (legacy)" do
-      config = full_config.merge("readonly_port" => 8081)
-
-      output = described_class.new.format(config)
-
-      expect(output).to include("Readonly port: 8081")
-    end
-
-    it "omits readonly port when not present" do
-      output = described_class.new.format(full_config)
-
-      expect(output).not_to include("Readonly port")
-    end
-
     it "shows analyzers section" do
       output = described_class.new.format(full_config)
 
