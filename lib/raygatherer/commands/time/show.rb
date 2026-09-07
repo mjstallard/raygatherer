@@ -41,6 +41,8 @@ module Raygatherer
         def show_help(output = @stdout)
           output.puts "Usage: raygatherer [global options] time show [options]"
           output.puts ""
+          output.puts "Show device time (system, adjusted, offset)."
+          output.puts ""
           output.puts "Options:"
           output.puts "    -h, --help                       Show this help message"
           output.puts ""
