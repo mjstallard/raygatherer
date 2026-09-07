@@ -16,28 +16,28 @@ module Raygatherer
     end
 
     ROUTES = {
-      ["log", nil] => {file: "commands/log", klass: "Commands::Log", json: false},
-      ["stats", nil] => {file: "commands/stats", klass: "Commands::Stats", json: true},
-      ["alerts", nil] => {file: "commands/alerts", klass: "Commands::Alerts", json: true},
-      ["recording", "list"] => {file: "commands/recording/list", klass: "Commands::Recording::List", json: true},
-      ["recording", "download"] => {file: "commands/recording/download", klass: "Commands::Recording::Download", json: false},
-      ["recording", "delete"] => {file: "commands/recording/delete", klass: "Commands::Recording::Delete", json: false},
-      ["recording", "stop"] => {file: "commands/recording/stop", klass: "Commands::Recording::Stop", json: false},
-      ["recording", "start"] => {file: "commands/recording/start", klass: "Commands::Recording::Start", json: false},
-      ["analysis", "status"] => {file: "commands/analysis/status", klass: "Commands::Analysis::Status", json: true},
-      ["analysis", "run"] => {file: "commands/analysis/run", klass: "Commands::Analysis::Run", json: true},
-      ["analysis", "report"] => {file: "commands/analysis/report", klass: "Commands::Analysis::Report", json: true},
-      ["config", "show"] => {file: "commands/config/show", klass: "Commands::Config::Show", json: true},
-      ["config", "set"] => {file: "commands/config/set", klass: "Commands::Config::Set", json: false},
-      ["config", "test-notification"] => {file: "commands/config/test_notification", klass: "Commands::Config::TestNotification", json: false},
-      ["debug", "display-state"] => {file: "commands/debug/display_state", klass: "Commands::Debug::DisplayState", json: false},
-      ["time", "show"] => {file: "commands/time/show", klass: "Commands::Time::Show", json: true},
-      ["time", "sync"] => {file: "commands/time/sync", klass: "Commands::Time::Sync", json: false},
-      ["update", "status"] => {file: "commands/update/status", klass: "Commands::Update::Status", json: true},
-      ["gps", "show"] => {file: "commands/gps/show", klass: "Commands::Gps::Show", json: true},
-      ["gps", "set"] => {file: "commands/gps/set", klass: "Commands::Gps::Set", json: false},
-      ["wifi", "show"] => {file: "commands/wifi/show", klass: "Commands::Wifi::Show", json: true},
-      ["wifi", "scan"] => {file: "commands/wifi/scan", klass: "Commands::Wifi::Scan", json: true}
+      ["log", nil] => {klass: "Commands::Log", json: false},
+      ["stats", nil] => {klass: "Commands::Stats", json: true},
+      ["alerts", nil] => {klass: "Commands::Alerts", json: true},
+      ["recording", "list"] => {klass: "Commands::Recording::List", json: true},
+      ["recording", "download"] => {klass: "Commands::Recording::Download", json: false},
+      ["recording", "delete"] => {klass: "Commands::Recording::Delete", json: false},
+      ["recording", "stop"] => {klass: "Commands::Recording::Stop", json: false},
+      ["recording", "start"] => {klass: "Commands::Recording::Start", json: false},
+      ["analysis", "status"] => {klass: "Commands::Analysis::Status", json: true},
+      ["analysis", "run"] => {klass: "Commands::Analysis::Run", json: true},
+      ["analysis", "report"] => {klass: "Commands::Analysis::Report", json: true},
+      ["config", "show"] => {klass: "Commands::Config::Show", json: true},
+      ["config", "set"] => {klass: "Commands::Config::Set", json: false},
+      ["config", "test-notification"] => {klass: "Commands::Config::TestNotification", json: false},
+      ["debug", "display-state"] => {klass: "Commands::Debug::DisplayState", json: false},
+      ["time", "show"] => {klass: "Commands::Time::Show", json: true},
+      ["time", "sync"] => {klass: "Commands::Time::Sync", json: false},
+      ["update", "status"] => {klass: "Commands::Update::Status", json: true},
+      ["gps", "show"] => {klass: "Commands::Gps::Show", json: true},
+      ["gps", "set"] => {klass: "Commands::Gps::Set", json: false},
+      ["wifi", "show"] => {klass: "Commands::Wifi::Show", json: true},
+      ["wifi", "scan"] => {klass: "Commands::Wifi::Scan", json: true}
     }.freeze
 
     def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
@@ -96,7 +96,6 @@ module Raygatherer
         return Commands::EXIT_CODE_ERROR
       end
 
-      require_relative route[:file]
       return Commands::EXIT_CODE_ERROR unless require_host!
 
       kwargs = {stdout: @stdout, stderr: @stderr, api_client: build_api_client}

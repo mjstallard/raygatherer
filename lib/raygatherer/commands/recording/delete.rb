@@ -20,7 +20,7 @@ module Raygatherer
 
             if @all && !@argv.empty?
               @stderr.puts "Error: cannot specify both a recording name and --all"
-              next EXIT_CODE_ERROR
+              return EXIT_CODE_ERROR
             end
 
             if @all
