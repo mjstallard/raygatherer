@@ -33,7 +33,9 @@ module Raygatherer
       ["debug", "display-state"] => {file: "commands/debug/display_state", klass: "Commands::Debug::DisplayState", json: false},
       ["time", "show"] => {file: "commands/time/show", klass: "Commands::Time::Show", json: true},
       ["time", "sync"] => {file: "commands/time/sync", klass: "Commands::Time::Sync", json: false},
-      ["update", "status"] => {file: "commands/update/status", klass: "Commands::Update::Status", json: true}
+      ["update", "status"] => {file: "commands/update/status", klass: "Commands::Update::Status", json: true},
+      ["gps", "show"] => {file: "commands/gps/show", klass: "Commands::Gps::Show", json: true},
+      ["gps", "set"] => {file: "commands/gps/set", klass: "Commands::Gps::Set", json: false}
     }.freeze
 
     def self.run(argv, stdout: $stdout, stderr: $stderr, config: Config.new)
@@ -191,6 +193,8 @@ module Raygatherer
       output.puts "    time show                        Show device time (system, adjusted, offset)"
       output.puts "    time sync                        Sync device clock to this machine's time"
       output.puts "    update status                    Show rayhunter daemon update status"
+      output.puts "    gps show                         Show last known GPS position"
+      output.puts "    gps set LAT LON                  Submit a GPS position (requires gps_mode=Api on device)"
       output.puts "    log                              Download the device log"
       output.puts "    stats                            Show device system stats"
       output.puts ""

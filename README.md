@@ -18,6 +18,7 @@ Currently implemented:
 - device clock show and sync
 - config show/set/test-notification
 - rayhunter update status, with a dedicated exit code for scripting
+- GPS position show/set (requires the device's gps_mode config to be set to Api)
 - JSON output mode for scriptable commands
 - optional basic auth and config file support
 - debug utilities (display-state)
@@ -163,6 +164,8 @@ Main commands:
 - `stats`
 - `log`
 - `update status`
+- `gps show`
+- `gps set LAT LON` (requires gps_mode=Api on the device)
 - `debug display-state <recording|paused|warning> [--severity low|medium|high]`
 
 For command-specific help:

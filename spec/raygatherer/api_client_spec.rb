@@ -888,6 +888,54 @@ RSpec.describe Raygatherer::ApiClient do
     end
   end
 
+  describe "#fetch_gps" do
+    let(:gps_response) { {"latitude" => 51.5, "longitude" => -0.1} }
+
+    it "parses JSON response from /api/gps" do
+      stub_request(:get, "#{host}/api/gps")
+        .to_return(status: 200, body: ::JSON.generate(gps_response))
+
+      result = client.fetch_gps
+
+      expect(result["latitude"]).to eq(51.5)
+      expect(result["longitude"]).to eq(-0.1)
+    end
+
+    it "returns nil when no position has been submitted yet (404)" do
+      stub_request(:get, "#{host}/api/gps")
+        .to_return(status: 404, body: "")
+
+      expect(client.fetch_gps).to be_nil
+    end
+
+    it_behaves_like "API client GET error handling",
+      path: "/api/gps",
+      method_call: ->(c) { c.fetch_gps } do
+      let(:success_body) { ::JSON.generate(gps_response) }
+    end
+  end
+
+  describe "#set_gps" do
+    it "POSTs JSON body with latitude and longitude to /api/gps" do
+      stub_request(:post, "#{host}/api/gps")
+        .with(
+          body: '{"latitude":51.5,"longitude":-0.1}',
+          headers: {"Content-Type" => "application/json"}
+        )
+        .to_return(status: 200, body: "")
+
+      client.set_gps(51.5, -0.1)
+
+      expect(WebMock).to have_requested(:post, "#{host}/api/gps")
+        .with(body: '{"latitude":51.5,"longitude":-0.1}')
+    end
+
+    it_behaves_like "API client POST error handling",
+      path: "/api/gps",
+      method_call: ->(c) { c.set_gps(51.5, -0.1) },
+      expected_code: "200"
+  end
+
   describe "#set_time_offset" do
     it "POSTs JSON body with offset_seconds to /api/time-offset" do
       stub_request(:post, "#{host}/api/time-offset")

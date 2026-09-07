@@ -20,6 +20,8 @@ require_relative "raygatherer/formatters/time_json"
 require_relative "raygatherer/formatters/time_human"
 require_relative "raygatherer/formatters/update_status_json"
 require_relative "raygatherer/formatters/update_status_human"
+require_relative "raygatherer/formatters/gps_json"
+require_relative "raygatherer/formatters/gps_human"
 require_relative "raygatherer/spinner"
 require_relative "raygatherer/commands/base"
 require_relative "raygatherer/commands/alerts"
@@ -40,6 +42,8 @@ require_relative "raygatherer/commands/debug/display_state"
 require_relative "raygatherer/commands/time/show"
 require_relative "raygatherer/commands/time/sync"
 require_relative "raygatherer/commands/update/status"
+require_relative "raygatherer/commands/gps/show"
+require_relative "raygatherer/commands/gps/set"
 
 module Raygatherer
   class Error < StandardError; end
