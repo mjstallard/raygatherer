@@ -47,30 +47,15 @@ module Raygatherer
     end
 
     def fetch_analysis_status
-      get("/api/analysis") do |body|
-        log_verbose "Parsing JSON response..."
-        result = parse_json(body)
-        log_verbose "Parsed successfully"
-        result
-      end
+      fetch_json("/api/analysis")
     end
 
     def fetch_config
-      get("/api/config") do |body|
-        log_verbose "Parsing JSON response..."
-        result = parse_json(body)
-        log_verbose "Parsed successfully"
-        result
-      end
+      fetch_json("/api/config")
     end
 
     def fetch_system_stats
-      get("/api/system-stats") do |body|
-        log_verbose "Parsing JSON response..."
-        result = parse_json(body)
-        log_verbose "Parsed successfully"
-        result
-      end
+      fetch_json("/api/system-stats")
     end
 
     def fetch_time
@@ -163,6 +148,15 @@ module Raygatherer
     end
 
     private
+
+    def fetch_json(path)
+      get(path) do |body|
+        log_verbose "Parsing JSON response..."
+        result = parse_json(body)
+        log_verbose "Parsed successfully"
+        result
+      end
+    end
 
     def get(path, not_found_code: nil)
       response, body = request(:get, path, ok_code: "200", ok_status_text: "OK")
