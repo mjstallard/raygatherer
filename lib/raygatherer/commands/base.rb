@@ -19,6 +19,13 @@ module Raygatherer
 
       private
 
+      def add_help_option(opts)
+        opts.on("-h", "--help", "Show this help message") do
+          show_help
+          raise CLI::EarlyExit, EXIT_CODE_SUCCESS
+        end
+      end
+
       def print_global_options(output, json: false)
         output.puts "Global options (see 'raygatherer --help'):"
         if json

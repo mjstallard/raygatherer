@@ -70,10 +70,7 @@ module Raygatherer
             @after = parse_timestamp(ts)
           end
 
-          opts.on("-h", "--help", "Show this help message") do
-            show_help
-            raise CLI::EarlyExit, EXIT_CODE_SUCCESS
-          end
+          add_help_option(opts)
         end.parse!(@argv)
       end
 
