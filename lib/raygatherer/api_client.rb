@@ -80,7 +80,7 @@ module Raygatherer
     end
 
     def fetch_gps
-      get_optional("/api/gps") { |body| parse_json(body) }
+      get("/api/gps", not_found_code: "404") { |body| parse_json(body) }
     end
 
     def set_gps(latitude, longitude)
@@ -164,23 +164,10 @@ module Raygatherer
 
     private
 
-    def get(path)
+    def get(path, not_found_code: nil)
       response, body = request(:get, path, ok_code: "200", ok_status_text: "OK")
 
-      unless response.is_a?(Net::HTTPSuccess)
-        raise ApiError, server_error_message(response, body)
-      end
-
-      yield body
-    rescue ParseError => e
-      log_verbose "Parse failed: #{e.message}"
-      raise
-    end
-
-    def get_optional(path, not_found_code: "404")
-      response, body = request(:get, path, ok_code: "200", ok_status_text: "OK")
-
-      return nil if response.code == not_found_code
+      return nil if not_found_code && response.code == not_found_code
 
       unless response.is_a?(Net::HTTPSuccess)
         raise ApiError, server_error_message(response, body)
